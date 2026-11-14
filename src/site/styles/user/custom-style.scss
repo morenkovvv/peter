@@ -1,33 +1,54 @@
-/* Force half-line vertical spacing on every single Enter (<br>) */
-main.content br,
-.content br {
-  display: block !important;
-  content: "" !important;
-  margin-top: 0.55em !important;
-  line-height: 0.55em !important;
-}
-
-/* Force half-line spacing between paragraphs, lists, and bullet points */
+/* 1. Generous vertical spacing between all lines, paragraphs, and lists */
 main.content p,
-.markdown-rendered p {
-  margin-top: 0.6em !important;
-  margin-bottom: 0.6em !important;
-  line-height: 1.6 !important;
+.content p {
+  line-height: 2.0 !important;
+  margin-top: 0.8em !important;
+  margin-bottom: 0.8em !important;
 }
 
 main.content ul,
 main.content ol,
-.markdown-rendered ul,
-.markdown-rendered ol {
-  margin-top: 0.45em !important;
-  margin-bottom: 0.75em !important;
+.content ul,
+.content ol {
+  margin-top: 0.5em !important;
+  margin-bottom: 0.8em !important;
   padding-left: 1.4em !important;
 }
 
 main.content li,
-.markdown-rendered li {
-  margin-top: 0.35em !important;
-  margin-bottom: 0.35em !important;
+.content li {
+  line-height: 1.8 !important;
+  margin-top: 0.45em !important;
+  margin-bottom: 0.45em !important;
+}
+
+/* 2. Preserve multi-line stanzas in poems */
+.tts-enabled .poem,
+.poem {
+  white-space: pre-line;
+  cursor: pointer;
+  line-height: 1.9 !important;
+  margin: 0.8em 0 !important;
+}
+
+/* 3. Clean pointer cursor with NO dotted underlines */
+.tts-enabled p,
+.tts-enabled li,
+.tts-enabled td,
+.tts-enabled th,
+.tts-enabled blockquote {
+  cursor: pointer;
+  text-decoration: none !important;
+  transition: color 0.15s ease, outline-color 0.15s ease;
+}
+
+/* 4. Gold font + clean gold frame while speaking (no background fill) */
+.tts-speaking {
+  color: #fbbf24 !important;
+  outline: 1.5px solid rgba(251, 191, 36, 0.65);
+  outline-offset: 4px;
+  border-radius: 6px;
+  background: transparent !important;
 }
 
 
