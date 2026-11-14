@@ -34,3 +34,11 @@
   border-radius: 6px;
   background: transparent !important;
 }
+
+/* Preserve line breaks in poems and make the whole poem clickable */
+.tts-enabled .poem,
+.poem {
+  white-space: pre-line;
+  cursor: pointer;
+  margin: 0.6em 0;
+}
