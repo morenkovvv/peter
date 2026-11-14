@@ -1,3 +1,10 @@
+/* Give single Enter line breaks (<br>) a clean half-line gap */
+main.content br {
+  display: block;
+  content: "";
+  margin-top: 0.45em;
+}
+
 /* Force half-line spacing between paragraphs, lists, and bullet points */
 main.content p,
 .markdown-rendered p {
