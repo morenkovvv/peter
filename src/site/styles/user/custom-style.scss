@@ -1,26 +1,33 @@
-/* 1. Generous vertical spacing between all lines, paragraphs, and lists */
+/* 1. Normal line height inside paragraphs + half-line gap on Enter & bullets */
 main.content p,
 .content p {
-  line-height: 2.0 !important;
-  margin-top: 0.8em !important;
-  margin-bottom: 0.8em !important;
+  line-height: 1.55 !important;
+  margin-top: 0.55em !important;
+  margin-bottom: 0.55em !important;
 }
 
 main.content ul,
 main.content ol,
 .content ul,
 .content ol {
-  margin-top: 0.5em !important;
-  margin-bottom: 0.8em !important;
+  margin-top: 0.45em !important;
+  margin-bottom: 0.7em !important;
   padding-left: 1.4em !important;
 }
 
 main.content li,
 .content li {
-  line-height: 1.8 !important;
-  margin-top: 0.45em !important;
-  margin-bottom: 0.45em !important;
+  line-height: 1.55 !important;
+  margin-top: 0.35em !important;
+  margin-bottom: 0.35em !important;
 }
+
+/* Exact half-line break wherever Enter (<br>) was pressed */
+.br-gap {
+  display: block;
+  height: 0.5em;
+}
+
 
 /* 2. Preserve multi-line stanzas in poems */
 .tts-enabled .poem,
