@@ -79,7 +79,7 @@ document.addEventListener('click', function (e) {
   finalQueue.forEach((seg, idx) => {
     const u = new SpeechSynthesisUtterance(seg.text);
     u.lang = seg.lang;
-    u.rate = seg.lang.startsWith('ru') ? 0.98 : 0.78;
+    u.rate = seg.lang.startsWith('ru') ? 0.9 : 0.7;
     u.pitch = 1;
 
     const voice = getVoice(seg.lang);
