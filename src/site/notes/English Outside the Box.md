@@ -2,8 +2,7 @@
 {"dg-publish":true,"permalink":"/English Outside the Box/","title":"English Outside the Box","tags":["gardenEntry"],"dg-note-properties":{"type":"hub","title":"English Outside the Box","cssclasses":["theme-dark"]}}
 ---
 
-# 🏆 English Outside the Box  
-
+# 
 > Добро пожаловать на борт, искатель приключений! 🗺️
 
 Перед тобой не простой школьный учебник с правилами и скучными текстами. Это **Свиток Заклинаний и Шифров**, который откроет тебе доступ к главному секрету нашей планеты — к Истинному Английскому Языку! 🗝️
