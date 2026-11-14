@@ -1,18 +1,36 @@
+/* 1. Half-line spacing between paragraphs and bullet points */
+.content p,
+.content ul,
+.content ol {
+  margin-block-start: 0.5em;
+  margin-block-end: 0.5em;
+}
+
+.content p + ul,
+.content p + ol {
+  margin-block-start: 0.25em;
+}
+
+.content li {
+  margin-bottom: 0.35em;
+}
+
+/* 2. Clean pointer cursor with NO dotted underlines */
 .tts-enabled p,
 .tts-enabled li,
 .tts-enabled td,
 .tts-enabled th,
 .tts-enabled blockquote {
   cursor: pointer;
-  transition: color 0.15s ease;
+  text-decoration: none !important;
+  transition: color 0.15s ease, outline-color 0.15s ease;
 }
 
-.tts-enabled p:hover,
-.tts-enabled li:hover,
-.tts-enabled td:hover {
-  text-decoration: underline dotted rgba(250, 204, 21, 0.45);
-}
-
+/* 3. Gold font + clean gold frame while speaking (no background fill) */
 .tts-speaking {
-  color: #facc15 !important;
+  color: #fbbf24 !important;
+  outline: 1.5px solid rgba(251, 191, 36, 0.65);
+  outline-offset: 4px;
+  border-radius: 6px;
+  background: transparent !important;
 }
