@@ -23,6 +23,8 @@ document.addEventListener('click', function (e) {
 const clean = (str) => str
     .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, '')
     .replace(/\S*[\u0250-\u02AF\u02B0-\u02FF\u00E6\u00F0\u014B\u03B8]\S*/g, '')
+    .replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{20E3}\u{E0020}-\u{E007F}\u{FE0F}\u{200D}]/gu, '')
+
     
     // Quotes and guillemets (keeps apostrophes inside words like don't or it's)
     .replace(/“/g, '')
