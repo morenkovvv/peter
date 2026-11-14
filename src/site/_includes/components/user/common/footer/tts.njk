@@ -7,55 +7,86 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('click', function (e) {
   if (e.target.closest('a, button, input, summary, .dg-quiz, .no-tts')) return;
 
-  const el = e.target.closest('.tts-enabled p, .tts-enabled li, .tts-enabled td, .tts-enabled th, .tts-enabled blockquote');
-  if (!el || !('speechSynthesis' in window)) return;
+  const directTag = e.target.closest('.tts-enabled [lang], .tts-enabled [data-tts]');
+  const blockEl = e.target.closest('.tts-enabled .poem, .tts-enabled p, .tts-enabled li, .tts-enabled td, .tts-enabled th, .tts-enabled blockquote');
+  const targetEl = directTag || blockEl;
 
-  const selection = window.getSelection().toString().trim();
-  const rawText = selection.length > 0 ? selection : el.innerText.trim();
-  if (!rawText) return;
+  if (!targetEl || !('speechSynthesis' in window)) return;
 
-  // 1. Strip all emojis and variation selectors so they aren't spoken aloud
-  const cleanText = rawText
+  // Strip emojis AND any word/token containing IPA phonetic symbols (ə, æ, ɪ, ŋ, ˈ, ː, θ, ð, ʃ, ʒ, etc.)
+  const clean = (str) => str
     .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, '')
+    .replace(/\S*[\u0250-\u02AF\u02B0-\u02FF\u00E6\u00F0\u014B\u03B8]\S*/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 
-  if (!cleanText) return;
+  const queue = [];
+  const selection = window.getSelection().toString().trim();
 
-  // 2. Split text into alternating Russian and English segments in reading order
-  const parts = cleanText.split(/([A-Za-z][A-Za-z0-9\s'".,!?;:\-–—()]*[A-Za-z0-9!?."')])/g)
-    .map(s => s.trim())
-    .filter(s => s && /[a-zA-Zа-яА-ЯёЁ0-9]/.test(s));
+  if (selection.length > 0) {
+    const cleanedSel = clean(selection);
+    if (cleanedSel) queue.push({ text: cleanedSel, lang: null });
+  } else {
+    const walk = (node, inheritedLang) => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const customText = node.getAttribute('data-tts');
+        const nodeLang = node.getAttribute('lang') || inheritedLang;
+        if (customText) {
+          const c = clean(customText);
+          if (c) queue.push({ text: c, lang: nodeLang });
+          return;
+        }
+        node.childNodes.forEach(child => walk(child, nodeLang));
+      } else if (node.nodeType === Node.TEXT_NODE) {
+        const txt = clean(node.textContent);
+        if (txt && /[a-zA-Zа-яА-ЯёЁ\u0590-\u05FF0-9]/.test(txt)) {
+          queue.push({ text: txt, lang: inheritedLang });
+        }
+      }
+    };
+    walk(targetEl, targetEl.getAttribute('lang'));
+  }
 
-  if (!parts.length) return;
+  const finalQueue = [];
+  queue.forEach(item => {
+    if (item.lang) {
+      finalQueue.push(item);
+    } else {
+      const parts = item.text.split(/([A-Za-z][A-Za-z0-9\s'".,!?;:\-–—()]*[A-Za-z0-9!?."')])/g)
+        .map(s => s.trim())
+        .filter(s => s && /[a-zA-Zа-яА-ЯёЁ0-9]/.test(s));
+      parts.forEach(p => {
+        const isEn = /[a-zA-Z]/.test(p) && !/[а-яА-ЯёЁ]/.test(p);
+        finalQueue.push({ text: p, lang: isEn ? 'en-US' : 'ru-RU' });
+      });
+    }
+  });
 
-  document.querySelectorAll('.tts-speaking').forEach(node => node.classList.remove('tts-speaking'));
-  el.classList.add('tts-speaking');
+  // If the entire clicked line was IPA transcription, finalQueue is empty -> stay silent
+  if (!finalQueue.length) return;
+
+  document.querySelectorAll('.tts-speaking').forEach(n => n.classList.remove('tts-speaking'));
+  targetEl.classList.add('tts-speaking');
 
   if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
 
   const voices = window.speechSynthesis.getVoices();
   const getVoice = (lang) =>
-    voices.filter(x => x.lang === lang && x.localService).pop() ||
-    voices.find(x => x.lang && x.lang.startsWith(lang.slice(0, 2)));
+    voices.filter(x => x.lang.toLowerCase().startsWith(lang.toLowerCase()) && x.localService).pop() ||
+    voices.find(x => x.lang && x.lang.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()));
 
-  // 3. Queue each chunk with its matching language voice
-  parts.forEach((chunk, index) => {
-    const isEnglish = /[a-zA-Z]/.test(chunk) && !/[а-яА-ЯёЁ]/.test(chunk);
-    const lang = isEnglish ? 'en-US' : 'ru-RU';
-
-    const u = new SpeechSynthesisUtterance(chunk);
-    u.lang = lang;
-    u.rate = isEnglish ? 0.78 : 0.98;
+  finalQueue.forEach((seg, idx) => {
+    const u = new SpeechSynthesisUtterance(seg.text);
+    u.lang = seg.lang;
+    u.rate = seg.lang.startsWith('ru') ? 0.98 : 0.78;
     u.pitch = 1;
 
-    const voice = getVoice(lang);
+    const voice = getVoice(seg.lang);
     if (voice) u.voice = voice;
 
-    if (index === parts.length - 1) {
-      u.onend = u.onerror = () => el.classList.remove('tts-speaking');
+    if (idx === finalQueue.length - 1) {
+      u.onend = u.onerror = () => targetEl.classList.remove('tts-speaking');
     }
-
     window.speechSynthesis.speak(u);
   });
 });
