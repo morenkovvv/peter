@@ -1,8 +1,10 @@
-/* Give single Enter line breaks (<br>) a clean half-line gap */
-main.content br {
-  display: block;
-  content: "";
-  margin-top: 0.45em;
+/* Force half-line vertical spacing on every single Enter (<br>) */
+main.content br,
+.content br {
+  display: block !important;
+  content: "" !important;
+  margin-top: 0.55em !important;
+  line-height: 0.55em !important;
 }
 
 /* Force half-line spacing between paragraphs, lists, and bullet points */
