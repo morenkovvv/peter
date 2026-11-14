@@ -1,7 +1,14 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const content = document.querySelector('.content, main, .markdown-rendered');
-  if (content) content.classList.add('tts-enabled');
+  if (content) {
+    content.classList.add('tts-enabled');
+    content.querySelectorAll('p br, li br, blockquote br').forEach(br => {
+      const gap = document.createElement('span');
+      gap.className = 'br-gap';
+      br.replaceWith(gap);
+    });
+  }
 });
 
 document.addEventListener('click', function (e) {
@@ -13,7 +20,6 @@ document.addEventListener('click', function (e) {
 
   if (!targetEl || !('speechSynthesis' in window)) return;
 
- // Strip emojis, IPA phonetic symbols, and slashes/tildes (/ and ~)
   const clean = (str) => str
     .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, '')
     .replace(/\S*[\u0250-\u02AF\u02B0-\u02FF\u00E6\u00F0\u014B\u03B8]\S*/g, '')
@@ -48,22 +54,24 @@ document.addEventListener('click', function (e) {
     walk(targetEl, targetEl.getAttribute('lang'));
   }
 
+  // Strictly separate Latin (English) runs from Cyrillic (Russian) runs
   const finalQueue = [];
   queue.forEach(item => {
     if (item.lang) {
       finalQueue.push(item);
     } else {
-      const parts = item.text.split(/([A-Za-z][A-Za-z0-9\s'".,!?;:\-–—()]*[A-Za-z0-9!?."')])/g)
+      const parts = item.text.split(/([A-Za-z][A-Za-z0-9\s'".,!?;:\-–—()]*)/g)
         .map(s => s.trim())
         .filter(s => s && /[a-zA-Zа-яА-ЯёЁ0-9]/.test(s));
       parts.forEach(p => {
-        const isEn = /[a-zA-Z]/.test(p) && !/[а-яА-ЯёЁ]/.test(p);
-        finalQueue.push({ text: p, lang: isEn ? 'en-US' : 'ru-RU' });
+        const hasCyrillic = /[а-яА-ЯёЁ]/.test(p);
+        const hasLatin = /[a-zA-Z]/.test(p);
+        const lang = (hasLatin && !hasCyrillic) ? 'en-US' : 'ru-RU';
+        finalQueue.push({ text: p, lang });
       });
     }
   });
 
-  // If the entire clicked line was IPA transcription, finalQueue is empty -> stay silent
   if (!finalQueue.length) return;
 
   document.querySelectorAll('.tts-speaking').forEach(n => n.classList.remove('tts-speaking'));
@@ -72,14 +80,17 @@ document.addEventListener('click', function (e) {
   if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
 
   const voices = window.speechSynthesis.getVoices();
-  const getVoice = (lang) =>
-    voices.filter(x => x.lang.toLowerCase().startsWith(lang.toLowerCase()) && x.localService).pop() ||
-    voices.find(x => x.lang && x.lang.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()));
+  const getVoice = (lang) => {
+    const prefix = lang.slice(0, 2).toLowerCase();
+    return voices.find(x => x.lang && x.lang.toLowerCase().startsWith(prefix) && x.localService) ||
+           voices.find(x => x.lang && x.lang.toLowerCase().startsWith(prefix));
+  };
 
   finalQueue.forEach((seg, idx) => {
     const u = new SpeechSynthesisUtterance(seg.text);
     u.lang = seg.lang;
-    u.rate = seg.lang.startsWith('ru') ? 0.9 : 0.7;
+    // Russian = 1.0 (natural pace), English/other = 0.7 (slow & clear)
+    u.rate = seg.lang.startsWith('ru') ? 1.0 : 0.7;
     u.pitch = 1;
 
     const voice = getVoice(seg.lang);
