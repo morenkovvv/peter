@@ -20,47 +20,40 @@ document.addEventListener('click', function (e) {
 
   if (!targetEl || !('speechSynthesis' in window)) return;
 
-const clean = (str) => str
-    .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu, '')
-    .replace(/\S*[\u0250-\u02AF\u02B0-\u02FF\u00E6\u00F0\u014B\u03B8]\S*/g, '')
-    .replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{20E3}\u{E0020}-\u{E007F}\u{FE0F}\u{200D}]/gu, '')
+const clean = (htmlStr) => htmlStr
+  // 1. Convert <br> and closing block tags into newlines for TTS pauses
+  .replace(/<br\s*\/?>|<\/p>|<\/div>/gi, '\n')
+  // 2. Strip all remaining HTML tags
+  .replace(/<[^>]*>/g, '')
+  // 3. Remove emojis, regional flags, tag sequences, and variation selectors
+  .replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{20E3}\u{E0020}-\u{E007F}\u{FE0F}\u{200D}]/gu, '')
+  // 4. Remove words containing IPA phonetic characters
+  .replace(/\S*[\u0250-\u02AF\u02B0-\u02FF\u00E6\u00F0\u014B\u03B8]\S*/g, '')
 
-    
-    // Quotes and guillemets (keeps apostrophes inside words like don't or it's)
-    .replace(/“/g, '')
-    .replace(/”/g, '')
-    .replace(/(?<![a-zA-Z0-9])'|'(?![a-zA-Z0-9])/g, '')
-    .replace(/(?<![a-zA-Z0-9])’|’(?![a-zA-Z0-9])/g, '')
-    .replace(/«/g, '')
-    .replace(/»/g, '')
+  // Quotes and guillemets (keeps apostrophes inside words like don't or it's)
+  .replace(/[“”«»]/g, '')
+  .replace(/(?<![a-zA-Z0-9])['’]|['’](?![a-zA-Z0-9])/g, '')
 
-    // Brackets and parentheses (commas add a natural pause on iOS)
-    .replace(/\(/g, ', ')
-    .replace(/\)/g, ', ')
-    .replace(/\[/g, '')
-    .replace(/\]/g, '')
-    .replace(/\{/g, '')
-    .replace(/\}/g, '')
+  // Brackets and parentheses (commas add a natural pause on iOS)
+  .replace(/\(/g, ', ')
+  .replace(/\)/g, ', ')
+  .replace(/[\[\]\{\}]/g, '')
 
-    // Ellipses (both three dots and the single Unicode character)
-    .replace(/\.\.\./g, '.')
-    .replace(/…/g, '.')
+  // Ellipses (both three dots and the single Unicode character)
+  .replace(/\.\.\.|…/g, '.')
 
-    // Slashes and connectors (replaced with spaces to keep words separate)
-    .replace(/\//g, ' ')
-    .replace(/\\/g, ' ')
-    .replace(/_/g, ' ')
-    .replace(/=/g, ' ')
-    .replace(/~/g, ' ')
+  // Slashes and connectors (replaced with spaces to keep words separate)
+  .replace(/[\\/_=~]/g, ' ')
 
-    // Formatting and code symbols
-    .replace(/#/g, '')
-    .replace(/\*/g, '')
-    .replace(/`/g, '')
+  // Formatting and code symbols
+  .replace(/[#*`]/g, '')
 
-    // Final whitespace cleanup
-    .replace(/\s+/g, ' ')
-    .trim();
+  // Final whitespace cleanup (preserves \n pauses!)
+  .replace(/[ \t]+/g, ' ')       // Collapse multiple spaces/tabs into one space
+  .replace(/ *\n */g, '\n')      // Remove spaces right before or after a newline
+  .replace(/\n{2,}/g, '\n')      // Collapse multiple blank lines into a single pause
+  .trim();
+
 
   const queue = [];
   const selection = window.getSelection().toString().trim();
