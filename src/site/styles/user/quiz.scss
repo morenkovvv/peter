@@ -1,4 +1,4 @@
-/* Верхняя панель счёта и кнопка сброса */
+/* Top Scoreboard & Reset Button */
 .quiz-scoreboard {
   margin: 1.5rem 0 0.75rem !important;
   padding: 0.6rem 0.9rem 0.6rem 1.3rem !important;
@@ -40,7 +40,7 @@
   }
 }
 
-/* Основной студийный блок викторины */
+/* Main TV Studio Container */
 .millionaire-studio {
   display: flex !important;
   flex-direction: column !important;
@@ -55,7 +55,7 @@
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
   box-sizing: border-box !important;
 
-  /* Логотип на всю ширину панели вопроса */
+  /* Full-Width Logo Above Every Question */
   .quiz-logo-wrap {
     display: block !important;
     width: 100% !important;
@@ -75,7 +75,7 @@
   }
 }
 
-/* Блок вопроса и вариантов */
+/* Active Question & Answers */
 .dg-quiz {
   position: relative !important;
   width: 100% !important;
@@ -110,12 +110,13 @@
     }
   }
 
-  /* Сетка ответов 2x2 — без белых линий поперёк */
+  /* 2x2 Answer Grid with Strict Column Widths */
   .quiz-options {
     position: relative !important;
     display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 0.9rem 1.1rem !important;
+    width: 100% !important;
     z-index: 1 !important;
 
     &::before,
@@ -125,7 +126,7 @@
     }
 
     @media (max-width: 640px) {
-      grid-template-columns: 1fr !important;
+      grid-template-columns: minmax(0, 1fr) !important;
     }
   }
 
@@ -134,14 +135,22 @@
     display: flex !important;
     align-items: center !important;
     width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
     min-height: 56px !important;
-    padding: 0.75rem 1.75rem !important;
+    height: auto !important;
+    padding: 0.85rem 1.95rem !important;
     border: none !important;
     background: linear-gradient(180deg, #10141f 0%, #000000 50%, #0c101a 100%) !important;
     color: #ffffff !important;
-    font-size: 1.02rem !important;
+    font-size: 1rem !important;
     font-weight: 600 !important;
+    line-height: 1.35 !important;
     text-align: left !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    box-sizing: border-box !important;
     text-decoration: none !important;
     cursor: pointer !important;
     clip-path: polygon(16px 0%, calc(100% - 16px) 0%, 100% 50%, calc(100% - 16px) 100%, 16px 100%, 0% 50%) !important;
@@ -169,6 +178,12 @@
       font-weight: 800 !important;
       margin-right: 0.6rem !important;
       flex-shrink: 0 !important;
+    }
+
+    span:last-child {
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+      white-space: normal !important;
     }
 
     &:hover:not(:disabled) {
@@ -208,7 +223,7 @@
     }
   }
 
-  /* Пояснение к ответу — полностью жирное */
+  /* Bold Answer Explanation Box */
   .quiz-explanation {
     margin-top: 1.25rem !important;
     padding: 1rem 1.25rem !important;
@@ -235,7 +250,7 @@
   }
 }
 
-/* Большая и жирная кнопка «Следующий вопрос» (по размеру как варианты ответов) */
+/* Large, Bold Next Question / Retry Button */
 .quiz-next-btn {
   display: inline-flex !important;
   align-items: center !important;
@@ -260,7 +275,7 @@
   }
 }
 
-/* Финальный экран результатов */
+/* Final Result Screen */
 .quiz-final-result {
   padding: 1.6rem !important;
   border-radius: 12px !important;
