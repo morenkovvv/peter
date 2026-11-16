@@ -1,18 +1,122 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const quizzes = document.querySelectorAll(".dg-quiz");
-  if (!quizzes.length) return;
+  const detailBlocks = Array.from(document.querySelectorAll("details")).filter((el) =>
+    el.querySelector("summary")?.textContent.toLowerCase().includes("показать ответ")
+  );
+
+  if (!detailBlocks.length) return;
+
+  const convertedQuizzes = [];
+
+  detailBlocks.forEach((details) => {
+    const ul = details.previousElementSibling;
+    const questionP = ul?.previousElementSibling;
+
+    if (!ul || ul.tagName !== "UL" || !questionP || questionP.tagName !== "P") return;
+
+    const listItems = Array.from(ul.querySelectorAll("li"));
+    if (listItems.length < 2) return;
+
+    const summaryEl = details.querySelector("summary");
+    if (summaryEl) summaryEl.remove();
+    const rawExplanation = details.innerHTML.trim();
+
+    const answerMatch = details.textContent.trim().match(/^([A-DА-Г])[\.\)\:\s]/i);
+    const letterMap = { "А": "A", "Б": "B", "В": "C", "Г": "D" };
+    let correctAnswer = answerMatch ? answerMatch[1].toUpperCase() : "";
+    if (letterMap[correctAnswer]) correctAnswer = letterMap[correctAnswer];
+
+    const quizBox = document.createElement("div");
+    quizBox.className = "dg-quiz";
+    quizBox.dataset.answer = correctAnswer;
+
+    const qDiv = document.createElement("div");
+    qDiv.className = "quiz-question";
+    qDiv.innerHTML = questionP.innerHTML;
+    quizBox.appendChild(qDiv);
+
+    const optionsDiv = document.createElement("div");
+    optionsDiv.className = "quiz-options";
+
+    listItems.forEach((li) => {
+      const text = li.innerHTML.trim();
+      const optMatch = li.textContent.trim().match(/^([A-DА-Г])[\)\.\:]\s*/i);
+      let choice = optMatch ? optMatch[1].toUpperCase() : "";
+      if (letterMap[choice]) choice = letterMap[choice];
+
+      const cleanText = text.replace(/^([A-DА-Г])[\)\.\:]\s*/i, "");
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "quiz-option";
+      btn.dataset.choice = choice;
+      btn.innerHTML = `<span class="quiz-letter">${choice}:</span><span>${cleanText}</span>`;
+      optionsDiv.appendChild(btn);
+    });
+
+    quizBox.appendChild(optionsDiv);
+
+    const expDiv = document.createElement("div");
+    expDiv.className = "quiz-explanation";
+    expDiv.innerHTML = rawExplanation;
+    expDiv.style.display = "none";
+    quizBox.appendChild(expDiv);
+
+    questionP.parentNode.insertBefore(quizBox, questionP);
+    questionP.remove();
+    ul.remove();
+    details.remove();
+
+    convertedQuizzes.push(quizBox);
+  });
+
+  if (!convertedQuizzes.length) return;
 
   const pageKey = `quiz_best_${window.location.pathname}`;
   let currentScore = 0;
-  const totalQuestions = quizzes.length;
+  let answeredCount = 0;
+  const totalQuestions = convertedQuizzes.length;
 
-  const firstQuiz = quizzes;
+  // Grade calculation based on percentage
+  const getGrade = (score, total) => {
+    const pct = Math.round((score / total) * 100);
+    if (pct === 100) return { pct, rank: "Миллионер! (5+)", msg: "Безупречный результат — ни единой ошибки!" };
+    if (pct >= 80)  return { pct, rank: "Отлично (5)", msg: "Прекрасное знание темы!" };
+    if (pct >= 60)  return { pct, rank: "Хорошо (4)", msg: "Достойный результат, но есть пара нюансов." };
+    if (pct >= 40)  return { pct, rank: "Удовлетворительно (3)", msg: "База есть, стоит повторить материал." };
+    return { pct, rank: "Нужна тренировка (2)", msg: "Попробуйте изучить пояснения и пройти тест ещё раз." };
+  };
+
+  // Top Scoreboard
+  const firstQuiz = convertedQuizzes[0];
   const scoreBoard = document.createElement("div");
   scoreBoard.className = "quiz-scoreboard";
   const savedBest = localStorage.getItem(pageKey) || "0";
-  scoreBoard.innerHTML = `Score: <strong class="q-curr">0</strong> / ${totalQuestions} &nbsp;|&nbsp; Best: <strong class="q-best">${savedBest}</strong>`;
+  scoreBoard.innerHTML = `
+    <span class="quiz-stats">Счёт: <strong class="q-curr">0</strong> / ${totalQuestions} &nbsp;|&nbsp; Рекорд: <strong class="q-best">${savedBest}</strong></span>
+    <button type="button" class="quiz-reset-btn">Пройти заново</button>
+  `;
   firstQuiz.parentNode.insertBefore(scoreBoard, firstQuiz);
+
+  // Final Result Card (hidden until all questions are answered)
+  const lastQuiz = convertedQuizzes[convertedQuizzes.length - 1];
+  const resultCard = document.createElement("div");
+  resultCard.className = "quiz-final-result";
+  resultCard.style.display = "none";
+  lastQuiz.parentNode.insertBefore(resultCard, lastQuiz.nextSibling);
+
+  const showFinalGrade = () => {
+    const grade = getGrade(currentScore, totalQuestions);
+    resultCard.innerHTML = `
+      <div class="result-header">Итог викторины</div>
+      <div class="result-score">${currentScore} из ${totalQuestions} (${grade.pct}%)</div>
+      <div class="result-rank">${grade.rank}</div>
+      <div class="result-msg">${grade.msg}</div>
+      <button type="button" class="quiz-reset-btn result-retry">Пройти заново</button>
+    `;
+    resultCard.style.display = "block";
+    resultCard.querySelector(".result-retry").addEventListener("click", resetQuiz);
+  };
 
   const updateScore = () => {
     const currEl = scoreBoard.querySelector(".q-curr");
@@ -24,26 +128,47 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem(pageKey, String(currentScore));
       if (bestEl) bestEl.textContent = String(currentScore);
     }
+
+    if (answeredCount === totalQuestions) {
+      showFinalGrade();
+    }
   };
 
-  quizzes.forEach((quiz) => {
-    const correctAnswer = quiz.dataset.answer?.trim().toUpperCase();
+  const resetQuiz = () => {
+    currentScore = 0;
+    answeredCount = 0;
+    const currEl = scoreBoard.querySelector(".q-curr");
+    if (currEl) currEl.textContent = "0";
+    resultCard.style.display = "none";
+
+    convertedQuizzes.forEach((quiz) => {
+      delete quiz.dataset.answered;
+      const explanation = quiz.querySelector(".quiz-explanation");
+      if (explanation) explanation.style.display = "none";
+
+      quiz.querySelectorAll(".quiz-option").forEach((opt) => {
+        opt.disabled = false;
+        opt.classList.remove("is-correct", "is-wrong");
+      });
+    });
+
+    scoreBoard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
+
+  scoreBoard.querySelector(".quiz-reset-btn").addEventListener("click", resetQuiz);
+
+  convertedQuizzes.forEach((quiz) => {
+    const correctAnswer = quiz.dataset.answer;
     const explanation = quiz.querySelector(".quiz-explanation");
     const options = quiz.querySelectorAll(".quiz-option");
 
-    if (explanation) explanation.style.display = "none";
-
     options.forEach((btn) => {
-      // Style "A)" or "A:" into a gold TV-show prefix
-      const choice = btn.dataset.choice?.trim().toUpperCase();
-      const cleanText = btn.innerHTML.replace(/^[A-D][\)\:\.]\s*/i, "");
-      if (choice) {
-        btn.innerHTML = `<span class="quiz-letter">${choice}:</span><span>${cleanText}</span>`;
-      }
-
       btn.addEventListener("click", () => {
         if (quiz.dataset.answered === "true") return;
         quiz.dataset.answered = "true";
+        answeredCount++;
+
+        const choice = btn.dataset.choice;
 
         if (choice === correctAnswer) {
           btn.classList.add("is-correct");
@@ -51,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           btn.classList.add("is-wrong");
           options.forEach((opt) => {
-            if (opt.dataset.choice?.trim().toUpperCase() === correctAnswer) {
+            if (opt.dataset.choice === correctAnswer) {
               opt.classList.add("is-correct");
             }
           });
