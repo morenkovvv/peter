@@ -1,5 +1,17 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+  // Add your logo image URLs here (local /img/... paths or external links)
+  const quizLogos = [
+    "/img/who1.png",
+    "/img/who2.png",
+    "/img/who1.jpg",
+    "/img/who2.jpg",
+    "/img/who3.jpg"
+    "/img/who1.webp",
+  ];
+
+  const getRandomLogo = () => quizLogos[Math.floor(Math.random() * quizLogos.length)];
+
   const detailBlocks = Array.from(document.querySelectorAll("details")).filter((el) =>
     el.querySelector("summary")?.textContent.toLowerCase().includes("показать ответ")
   );
@@ -23,12 +35,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const answerMatch = details.textContent.trim().match(/^([A-DА-Г])[\.\)\:\s]/i);
     const letterMap = { "А": "A", "Б": "B", "В": "C", "Г": "D" };
-    let correctAnswer = answerMatch ? answerMatch[1].toUpperCase() : "";
+    let correctAnswer = answerMatch ? answerMatch[0].toUpperCase() : "";
     if (letterMap[correctAnswer]) correctAnswer = letterMap[correctAnswer];
 
     const quizBox = document.createElement("div");
     quizBox.className = "dg-quiz";
     quizBox.dataset.answer = correctAnswer;
+
+    // Insert random show logo above the question
+    if (quizLogos.length) {
+      const logoWrap = document.createElement("div");
+      logoWrap.className = "quiz-logo-wrap";
+      const img = document.createElement("img");
+      img.className = "quiz-logo";
+      img.src = getRandomLogo();
+      img.alt = "Show Logo";
+      img.loading = "lazy";
+      logoWrap.appendChild(img);
+      quizBox.appendChild(logoWrap);
+    }
 
     const qDiv = document.createElement("div");
     qDiv.className = "quiz-question";
@@ -41,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
     listItems.forEach((li) => {
       const text = li.innerHTML.trim();
       const optMatch = li.textContent.trim().match(/^([A-DА-Г])[\)\.\:]\s*/i);
-      let choice = optMatch ? optMatch[1].toUpperCase() : "";
+      let choice = optMatch ? optMatch[0].toUpperCase() : "";
       if (letterMap[choice]) choice = letterMap[choice];
 
       const cleanText = text.replace(/^([A-DА-Г])[\)\.\:]\s*/i, "");
@@ -77,7 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let answeredCount = 0;
   const totalQuestions = convertedQuizzes.length;
 
-  // Grade calculation based on percentage
   const getGrade = (score, total) => {
     const pct = Math.round((score / total) * 100);
     if (pct === 100) return { pct, rank: "Миллионер! (5+)", msg: "Безупречный результат — ни единой ошибки!" };
@@ -87,7 +111,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return { pct, rank: "Нужна тренировка (2)", msg: "Попробуйте изучить пояснения и пройти тест ещё раз." };
   };
 
-  // Top Scoreboard
   const firstQuiz = convertedQuizzes[0];
   const scoreBoard = document.createElement("div");
   scoreBoard.className = "quiz-scoreboard";
@@ -98,7 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
   `;
   firstQuiz.parentNode.insertBefore(scoreBoard, firstQuiz);
 
-  // Final Result Card (hidden until all questions are answered)
   const lastQuiz = convertedQuizzes[convertedQuizzes.length - 1];
   const resultCard = document.createElement("div");
   resultCard.className = "quiz-final-result";
@@ -143,6 +165,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     convertedQuizzes.forEach((quiz) => {
       delete quiz.dataset.answered;
+
+      // Pick a new random logo on reset
+      const logoImg = quiz.querySelector(".quiz-logo");
+      if (logoImg && quizLogos.length) {
+        logoImg.src = getRandomLogo();
+      }
+
       const explanation = quiz.querySelector(".quiz-explanation");
       if (explanation) explanation.style.display = "none";
 
