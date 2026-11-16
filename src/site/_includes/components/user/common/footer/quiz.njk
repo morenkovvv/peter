@@ -4,7 +4,7 @@ window.addEventListener("load", function () {
   var questions = [];
 
   for (var i = 0; i < details.length; i++) {
-    var det = details[i];
+    var det = details.item(i);
     var sum = det.querySelector("summary");
     if (!sum || sum.textContent.indexOf("Показать ответ") === -1) continue;
 
@@ -25,13 +25,13 @@ window.addEventListener("load", function () {
     var plain = clone.textContent.replace(/[\*\s]+/g, " ").trim();
     var firstChar = plain.charAt(0).toUpperCase();
     var map = { "А": "A", "Б": "B", "В": "C", "Г": "D" };
-    var correct = map[firstChar] || firstChar;
+    var correct = map.hasOwnProperty(firstChar) ? map[firstChar] : firstChar;
 
     var opts = [];
     for (var j = 0; j < lis.length; j++) {
-      var li = lis[j];
+      var li = lis.item(j);
       var ch = li.textContent.trim().charAt(0).toUpperCase();
-      ch = map[ch] || ch;
+      ch = map.hasOwnProperty(ch) ? map[ch] : ch;
       var txt = li.innerHTML.trim().replace(/^[A-DА-Г][\)\.\:]\s*/i, "");
       opts.push({ letter: ch, html: txt });
     }
@@ -59,7 +59,10 @@ window.addEventListener("load", function () {
     "/img/user/who0.webp", "/img/user/who1.webp", "/img/user/who2.webp",
     "/img/user/who3.webp", "/img/user/who4.webp", "/img/user/who5.webp",
     "/img/user/who6.webp", "/img/user/who7.webp", "/img/user/who8.webp",
-    "/img/user/who9.webp", "/img/who0.webp", "/img/who1.webp"
+    "/img/user/who9.webp", "/img/who0.webp", "/img/who1.webp",
+    "/img/who2.webp", "/img/who3.webp", "/img/who4.webp",
+    "/img/who5.webp", "/img/who6.webp", "/img/who7.webp",
+    "/img/who8.webp", "/img/who9.webp"
   ];
 
   var prizeList = [
@@ -71,13 +74,16 @@ window.addEventListener("load", function () {
   function getMoney(idx) {
     if (idx === total - 1) return "$1 Million";
     var offset = prizeList.length - total;
-    if (offset >= 0 && prizeList[idx + offset]) {
-      return prizeList[idx + offset];
+    var target = idx + offset;
+    if (target >= 0 && target < prizeList.length) {
+      return prizeList.slice(target, target + 1).pop();
     }
     return "$" + ((idx + 1) * 1000).toLocaleString("en-US");
   }
 
-  var firstP = questions[0].pNode;
+  // Безопасное получение первого вопроса без квадратных скобок
+  var firstItem = questions.slice(0, 1).pop();
+  var firstP = firstItem.pNode;
   var best = localStorage.getItem(key) || "0";
 
   var board = document.createElement("div");
@@ -103,11 +109,11 @@ window.addEventListener("load", function () {
   firstP.parentNode.insertBefore(board, firstP);
   firstP.parentNode.insertBefore(studio, firstP);
 
-  for (var x = 0; x < questions.length; x++) {
-    questions[x].pNode.remove();
-    questions[x].ulNode.remove();
-    questions[x].detNode.remove();
-  }
+  questions.forEach(function (qItem) {
+    qItem.pNode.remove();
+    qItem.ulNode.remove();
+    qItem.detNode.remove();
+  });
 
   var logoWrap = document.createElement("div");
   logoWrap.className = "quiz-logo-wrap";
@@ -145,11 +151,11 @@ window.addEventListener("load", function () {
   }
 
   function updateLadder() {
-    for (var i = 0; i < rows.length; i++) {
-      var idx = Number(rows[i].getAttribute("data-idx"));
-      rows[i].classList.toggle("is-active", idx === cur);
-      rows[i].classList.toggle("is-passed", idx < cur);
-    }
+    rows.forEach(function (rowEl) {
+      var idx = Number(rowEl.getAttribute("data-idx"));
+      rowEl.classList.toggle("is-active", idx === cur);
+      rowEl.classList.toggle("is-passed", idx < cur);
+    });
   }
 
   function showEnd() {
@@ -169,11 +175,13 @@ window.addEventListener("load", function () {
 
     left.appendChild(endBox);
     endBox.querySelector(".result-retry").addEventListener("click", resetGame);
-    for (var i = 0; i < rows.length; i++) rows[i].classList.remove("is-active");
+    rows.forEach(function (rowEl) { rowEl.classList.remove("is-active"); });
   }
 
   function renderStep(idx) {
-    var item = questions[idx];
+    var item = questions.slice(idx, idx + 1).pop();
+    if (!item) return;
+
     board.querySelector(".q-step").textContent = String(idx + 1);
     updateLadder();
     left.innerHTML = "";
@@ -215,47 +223,47 @@ window.addEventListener("load", function () {
 
     var answered = false;
 
-    for (var k = 0; k < item.options.length; k++) {
-      (function (opt) {
-        var btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "quiz-option";
-        btn.setAttribute("data-letter", opt.letter);
-        btn.innerHTML = '<span class="quiz-letter">' + opt.letter + ':</span><span>' + opt.html + '</span>';
+    item.options.forEach(function (opt) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "quiz-option";
+      btn.setAttribute("data-letter", opt.letter);
+      btn.innerHTML = '<span class="quiz-letter">' + opt.letter + ':</span><span>' + opt.html + '</span>';
 
-        btn.addEventListener("click", function () {
-          if (answered) return;
-          answered = true;
+      btn.addEventListener("click", function () {
+        if (answered) return;
+        answered = true;
 
-          var allBtns = optsDiv.querySelectorAll(".quiz-option");
-          if (opt.letter === item.correct) {
-            btn.classList.add("is-correct");
-            score++;
-            money = getMoney(idx);
-          } else {
-            btn.classList.add("is-wrong");
-            for (var m = 0; m < allBtns.length; m++) {
-              if (allBtns[m].getAttribute("data-letter") === item.correct) {
-                allBtns[m].classList.add("is-correct");
-              }
+        var allBtns = optsDiv.querySelectorAll(".quiz-option");
+        if (opt.letter === item.correct) {
+          btn.classList.add("is-correct");
+          score++;
+          money = getMoney(idx);
+        } else {
+          btn.classList.add("is-wrong");
+          for (var m = 0; m < allBtns.length; m++) {
+            if (allBtns.item(m).getAttribute("data-letter") === item.correct) {
+              allBtns.item(m).classList.add("is-correct");
             }
           }
+        }
 
-          for (var n = 0; n < allBtns.length; n++) allBtns[n].disabled = true;
-          expDiv.style.display = "block";
-          nextBtn.style.display = "inline-flex";
+        for (var n = 0; n < allBtns.length; n++) {
+          allBtns.item(n).disabled = true;
+        }
+        expDiv.style.display = "block";
+        nextBtn.style.display = "inline-flex";
 
-          board.querySelector(".q-curr").textContent = String(score);
-          var prevBest = Number(localStorage.getItem(key) || 0);
-          if (score > prevBest) {
-            localStorage.setItem(key, String(score));
-            board.querySelector(".q-best").textContent = String(score);
-          }
-        });
+        board.querySelector(".q-curr").textContent = String(score);
+        var prev = Number(localStorage.getItem(key) || 0);
+        if (score > prev) {
+          localStorage.setItem(key, String(score));
+          board.querySelector(".q-best").textContent = String(score);
+        }
+      });
 
-        optsDiv.appendChild(btn);
-      })(item.options[k]);
-    }
+      optsDiv.appendChild(btn);
+    });
 
     card.appendChild(optsDiv);
     card.appendChild(expDiv);
