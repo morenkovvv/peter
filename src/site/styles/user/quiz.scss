@@ -1,7 +1,7 @@
 /* Top Scoreboard & Reset Button */
 .quiz-scoreboard {
   margin: 1.5rem 0 0.75rem;
-  padding: 0.5rem 0.7rem 0.5rem 1.2rem;
+  padding: 0.55rem 0.85rem 0.55rem 1.25rem;
   border-radius: 999px;
   background: linear-gradient(180deg, #0b2569 0%, #051238 100%);
   border: 1.5px solid #8ea8d8;
@@ -17,8 +17,13 @@
     color: #f39c12;
   }
 
+  .q-money {
+    color: #2ecc71;
+    font-size: 1.02rem;
+  }
+
   .quiz-reset-btn {
-    padding: 0.3rem 0.85rem;
+    padding: 0.32rem 0.9rem;
     border-radius: 999px;
     border: 1px solid #f39c12;
     background: rgba(243, 156, 18, 0.15);
@@ -35,73 +40,79 @@
   }
 }
 
-/* TV-Show Studio Quiz Container */
-.dg-quiz {
-  position: relative;
-  margin: 1.5rem 0;
-  padding: 1.75rem 1.25rem;
-  border-radius: 12px;
-  background: radial-gradient(circle at 50% 30%, #0d358c 0%, #06184a 55%, #020924 100%);
+/* Main Single-Column TV Studio Container */
+.millionaire-studio {
+  display: flex;
+  flex-direction: column;
+  margin: 1rem 0 2rem;
+  padding: 1.5rem;
+  border-radius: 14px;
+  background: radial-gradient(circle at 50% 28%, #0e3b9c 0%, #06184a 58%, #020820 100%);
   border: 2px solid #4c6cb3;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
   color: #ffffff;
-  overflow: hidden;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  /* Centered Show Logo Above Question */
+  /* Full-Width Logo Above Every Question */
   .quiz-logo-wrap {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 1.1rem;
+    width: 100%;
+    margin-bottom: 1.25rem;
 
     .quiz-logo {
-      max-height: 110px;
-      width: auto;
+      width: 100%;
+      max-height: 210px;
       object-fit: contain;
-      filter: drop-shadow(0 0 14px rgba(142, 168, 216, 0.45));
+      border-radius: 8px;
+      filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.5));
       user-select: none;
     }
   }
+}
 
-  /* Question Lozenge */
+/* Active Question & Answers */
+.dg-quiz {
+  position: relative;
+  width: 100%;
+
   .quiz-question {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    min-height: 64px;
-    padding: 1rem 2.2rem;
-    margin: 0 auto 1.4rem;
-    font-size: 1.1rem;
-    font-weight: 500;
+    min-height: 70px;
+    padding: 1rem 2.1rem;
+    margin: 0 auto 1.3rem;
+    font-size: 1.12rem;
+    font-weight: 600;
     line-height: 1.4;
     color: #ffffff;
     background: linear-gradient(180deg, #10141f 0%, #000000 50%, #0c101a 100%);
-    clip-path: polygon(24px 0%, calc(100% - 24px) 0%, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0% 50%);
+    clip-path: polygon(22px 0%, calc(100% - 22px) 0%, 100% 50%, calc(100% - 22px) 100%, 22px 100%, 0% 50%);
     z-index: 1;
 
-    /* Metallic Silver Inner Rim */
     &::before {
       content: "";
       position: absolute;
       inset: 0;
       background: linear-gradient(180deg, #d8e2f3 0%, #7d92b8 50%, #d8e2f3 100%);
       clip-path: polygon(
-        24px 0%, calc(100% - 24px) 0%, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0% 50%,
-        24px 2px, 3px 50%, 24px calc(100% - 2px), calc(100% - 24px) calc(100% - 2px), calc(100% - 3px) 50%, calc(100% - 24px) 2px
+        22px 0%, calc(100% - 22px) 0%, 100% 50%, calc(100% - 22px) 100%, 22px 100%, 0% 50%,
+        22px 2px, 3px 50%, 22px calc(100% - 2px), calc(100% - 22px) calc(100% - 2px), calc(100% - 3px) 50%, calc(100% - 22px) 2px
       );
       pointer-events: none;
     }
   }
 
-  /* 2x2 Answer Grid */
+  /* 2x2 Answer Grid (No slash lines across buttons) */
   .quiz-options {
     position: relative;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.85rem 1.25rem;
+    gap: 0.85rem 1.1rem;
     z-index: 1;
 
     @media (max-width: 640px) {
@@ -109,56 +120,30 @@
     }
   }
 
-  /* Horizontal TV Studio Connector Lines */
-  .quiz-options::before,
-  .quiz-options::after {
-    content: "";
-    position: absolute;
-    left: -1.5rem;
-    right: -1.5rem;
-    height: 2px;
-    background: linear-gradient(90deg, transparent 0%, #8ea8d8 15%, #8ea8d8 85%, transparent 100%);
-    z-index: -1;
-    pointer-events: none;
-  }
-
-  .quiz-options::before {
-    top: 24px;
-  }
-
-  .quiz-options::after {
-    bottom: 24px;
-    @media (max-width: 640px) {
-      display: none;
-    }
-  }
-
-  /* Answer Lozenge Buttons */
   .quiz-option {
     position: relative;
     display: flex;
     align-items: center;
     width: 100%;
-    min-height: 48px;
-    padding: 0.65rem 1.75rem;
+    min-height: 52px;
+    padding: 0.65rem 1.65rem;
     border: none;
     background: linear-gradient(180deg, #10141f 0%, #000000 50%, #0c101a 100%);
     color: #ffffff;
     font-size: 0.98rem;
     text-align: left;
     cursor: pointer;
-    clip-path: polygon(18px 0%, calc(100% - 18px) 0%, 100% 50%, calc(100% - 18px) 100%, 18px 100%, 0% 50%);
-    transition: transform 0.12s ease, background 0.15s ease;
+    clip-path: polygon(16px 0%, calc(100% - 16px) 0%, 100% 50%, calc(100% - 16px) 100%, 16px 100%, 0% 50%);
+    transition: background 0.15s ease;
 
-    /* Silver Metallic Border */
     &::before {
       content: "";
       position: absolute;
       inset: 0;
       background: linear-gradient(180deg, #d8e2f3 0%, #7d92b8 50%, #d8e2f3 100%);
       clip-path: polygon(
-        18px 0%, calc(100% - 18px) 0%, 100% 50%, calc(100% - 18px) 100%, 18px 100%, 0% 50%,
-        18px 2px, 3px 50%, 18px calc(100% - 2px), calc(100% - 18px) calc(100% - 2px), calc(100% - 3px) 50%, calc(100% - 18px) 2px
+        16px 0%, calc(100% - 16px) 0%, 100% 50%, calc(100% - 16px) 100%, 16px 100%, 0% 50%,
+        16px 2px, 3px 50%, 16px calc(100% - 2px), calc(100% - 16px) calc(100% - 2px), calc(100% - 3px) 50%, calc(100% - 16px) 2px
       );
       pointer-events: none;
     }
@@ -170,7 +155,6 @@
       flex-shrink: 0;
     }
 
-    /* Classic Millionaire Orange Hover */
     &:hover:not(:disabled) {
       background: linear-gradient(180deg, #f39c12 0%, #c86d00 100%);
       color: #000000;
@@ -185,7 +169,6 @@
       cursor: default;
     }
 
-    /* Locked-in Correct Answer (Emerald Green) */
     &.is-correct {
       background: linear-gradient(180deg, #2ecc71 0%, #16803c 100%);
       color: #ffffff;
@@ -196,7 +179,6 @@
       }
     }
 
-    /* Locked-in Wrong Answer (Crimson Red) */
     &.is-wrong {
       background: linear-gradient(180deg, #e74c3c 0%, #961b12 100%);
       color: #ffffff;
@@ -208,58 +190,80 @@
     }
   }
 
-  /* Explanation Box */
   .quiz-explanation {
-    margin-top: 1.25rem;
-    padding: 0.85rem 1.2rem;
-    background: rgba(2, 10, 36, 0.85);
+    margin-top: 1.2rem;
+    padding: 0.9rem 1.2rem;
+    background: rgba(2, 10, 36, 0.9);
     border: 1px solid #6b88c9;
     border-left: 4px solid #f39c12;
     border-radius: 6px;
     color: #e8eefc;
-    font-size: 0.93rem;
+    font-size: 0.95rem;
     line-height: 1.45;
 
     strong {
       color: #f39c12;
     }
+  }
 
-    code {
-      background: rgba(255, 255, 255, 0.12);
-      color: #ffd166;
-      padding: 0.1rem 0.35rem;
-      border-radius: 4px;
-    }
+  .quiz-footer-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.25rem;
   }
 }
 
-/* Final Result & Grade Card */
+/* Bigger, Bolder Next Question / Retry Button */
+.quiz-next-btn {
+  padding: 0.85rem 2.2rem;
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  background: linear-gradient(180deg, #f39c12 0%, #c86d00 100%);
+  color: #000000;
+  font-weight: 800;
+  font-size: 1.12rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: scale(1.04);
+    box-shadow: 0 8px 24px rgba(243, 156, 18, 0.55);
+  }
+}
+
+/* Final Result Screen */
 .quiz-final-result {
-  margin: 1.75rem 0;
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: 10px;
   text-align: center;
-  background: radial-gradient(circle at 50% 30%, #0d358c 0%, #051238 100%);
-  border: 2px solid #f39c12;
-  color: #ffffff;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  background: rgba(2, 10, 36, 0.8);
+  border: 1.5px solid #f39c12;
 
   .result-header {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.85rem;
     color: #8ea8d8;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .result-money {
+    font-size: 1.95rem;
+    font-weight: 800;
+    color: #2ecc71;
+    margin-bottom: 0.3rem;
   }
 
   .result-score {
-    font-size: 1.6rem;
+    font-size: 1.18rem;
     font-weight: 700;
     color: #ffffff;
   }
 
   .result-rank {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: #f39c12;
     margin: 0.35rem 0;
@@ -268,22 +272,6 @@
   .result-msg {
     font-size: 0.95rem;
     color: #dce6fa;
-    margin-bottom: 1.1rem;
-  }
-
-  .result-retry {
-    padding: 0.45rem 1.2rem;
-    border-radius: 999px;
-    border: 1.5px solid #f39c12;
-    background: linear-gradient(180deg, #f39c12 0%, #c86d00 100%);
-    color: #000000;
-    font-weight: 700;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: transform 0.12s ease;
-
-    &:hover {
-      transform: scale(1.04);
-    }
+    margin-bottom: 1.25rem;
   }
 }
