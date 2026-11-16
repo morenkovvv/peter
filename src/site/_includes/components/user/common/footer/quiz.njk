@@ -1,34 +1,44 @@
- <script>
+<script>
 (function () {
   function initMillionaireQuiz() {
     const quizLogos = [
-    "/img/who1.png",
-    "/img/who2.png",
-    "/img/who1.jpg",
-    "/img/who2.jpg",
-    "/img/who3.jpg"
-    "/img/who4.jpg",
-    "/img/who5.jpg",
-    "/img/who6.jpg"
-    "/img/who1.webp",
-    "/img/who2.webp",
+      "/img/who1.png",
+      "/img/who2.png",
+      "/img/who1.jpg",
+      "/img/who2.jpg",
+      "/img/who3.jpg",
+      "/img/who4.jpg",
+      "/img/who5.jpg",
+      "/img/who6.jpg",
+      "/img/who1.webp",
+      "/img/who2.webp"
     ];
 
     const getRandomLogo = () =>
-      quizLogos[Math.floor(Math.random() * quizLogos.length)];
+      quizLogos.at(Math.floor(Math.random() * quizLogos.length));
 
-    const detailBlocks = Array.from(document.querySelectorAll("details")).filter((el) => {
-      const summary = el.querySelector("summary");
-      return summary && summary.textContent.toLowerCase().includes("показать ответ");
+    // Find all elements on the page containing "Показать ответ"
+    const allElements = Array.from(document.querySelectorAll("details, div, p, blockquote"));
+    const answerBlocks = allElements.filter((el) => {
+      const text = el.textContent || "";
+      const hasPhrase = text.includes("Показать ответ");
+      const hasChildWithPhrase = Array.from(el.children).some(
+        (child) =>
+          child.tagName !== "SUMMARY" &&
+          child.tagName !== "STRONG" &&
+          child.tagName !== "B" &&
+          (child.textContent || "").includes("Показать ответ")
+      );
+      return hasPhrase && !hasChildWithPhrase && text.length < 600;
     });
 
-    if (!detailBlocks.length) return;
+    if (!answerBlocks.length) return;
 
     const convertedQuizzes = [];
 
-    detailBlocks.forEach((details) => {
+    answerBlocks.forEach((ansBlock) => {
       // Walk backward to find the <ul> list of options
-      let ul = details.previousElementSibling;
+      let ul = ansBlock.previousElementSibling;
       while (ul && ul.tagName !== "UL") {
         ul = ul.previousElementSibling;
       }
@@ -44,15 +54,20 @@
       const listItems = Array.from(ul.querySelectorAll("li"));
       if (listItems.length < 2) return;
 
-      const summaryEl = details.querySelector("summary");
+      // Clean the explanation text
+      const cloneAns = ansBlock.cloneNode(true);
+      const summaryEl = cloneAns.querySelector("summary");
       if (summaryEl) summaryEl.remove();
-      const rawExplanation = details.innerHTML.trim();
+      let rawExplanation = cloneAns.innerHTML.replace(/Показать ответ\s*/gi, "").trim();
 
-      const answerMatch = details.textContent.trim().match(/^([A-DА-Г])[\.\)\:\s]/i);
+      // Determine the correct letter (A, B, C, or D)
+      const cleanTextForMatch = cloneAns.textContent.replace(/Показать ответ\s*/gi, "").trim();
+      const answerMatch = cleanTextForMatch.match(/^([A-DА-Г])[\.\)\:\s]/i);
       const letterMap = { "А": "A", "Б": "B", "В": "C", "Г": "D" };
-      let correctAnswer = answerMatch ? answerMatch[1].toUpperCase() : "";
+      let correctAnswer = answerMatch ? answerMatch.at(1).toUpperCase() : "";
       if (letterMap[correctAnswer]) correctAnswer = letterMap[correctAnswer];
 
+      // Build the TV-show card
       const quizBox = document.createElement("div");
       quizBox.className = "dg-quiz";
       quizBox.dataset.answer = correctAnswer;
@@ -65,7 +80,6 @@
         img.src = getRandomLogo();
         img.alt = "Show Logo";
         img.loading = "lazy";
-        // Hide broken image icon if logo file isn't uploaded yet
         img.onerror = () => { logoWrap.style.display = "none"; };
         logoWrap.appendChild(img);
         quizBox.appendChild(logoWrap);
@@ -82,7 +96,7 @@
       listItems.forEach((li) => {
         const text = li.innerHTML.trim();
         const optMatch = li.textContent.trim().match(/^([A-DА-Г])[\)\.\:]\s*/i);
-        let choice = optMatch ? optMatch[1].toUpperCase() : "";
+        let choice = optMatch ? optMatch.at(1).toUpperCase() : "";
         if (letterMap[choice]) choice = letterMap[choice];
 
         const cleanText = text.replace(/^([A-DА-Г])[\)\.\:]\s*/i, "");
@@ -103,16 +117,18 @@
       expDiv.style.display = "none";
       quizBox.appendChild(expDiv);
 
+      // Replace plain Markdown elements with the interactive quiz card
       questionP.parentNode.insertBefore(quizBox, questionP);
       questionP.remove();
       ul.remove();
-      details.remove();
+      ansBlock.remove();
 
       convertedQuizzes.push(quizBox);
     });
 
     if (!convertedQuizzes.length) return;
 
+    // Scoreboard and grading
     const pageKey = `quiz_best_${window.location.pathname}`;
     let currentScore = 0;
     let answeredCount = 0;
@@ -127,7 +143,7 @@
       return { pct, rank: "Нужна тренировка (2)", msg: "Попробуйте изучить пояснения и пройти тест ещё раз." };
     };
 
-    const firstQuiz = convertedQuizzes[0];
+    const firstQuiz = convertedQuizzes.at(0);
     const scoreBoard = document.createElement("div");
     scoreBoard.className = "quiz-scoreboard";
     const savedBest = localStorage.getItem(pageKey) || "0";
@@ -137,7 +153,7 @@
     `;
     firstQuiz.parentNode.insertBefore(scoreBoard, firstQuiz);
 
-    const lastQuiz = convertedQuizzes[convertedQuizzes.length - 1];
+    const lastQuiz = convertedQuizzes.at(-1);
     const resultCard = document.createElement("div");
     resultCard.className = "quiz-final-result";
     resultCard.style.display = "none";
