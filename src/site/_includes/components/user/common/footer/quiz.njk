@@ -1,368 +1,309 @@
 <script>
 (function () {
-  function initMillionaireQuiz() {
-    try {
-      var quizLogos = [
-        "/img/who0.webp",
-        "/img/who1.webp",
-        "/img/who2.webp",
-        "/img/who3.webp",
-        "/img/who4.webp",
-        "/img/who5.webp",
-        "/img/who6.webp",
-        "/img/who7.webp",
-        "/img/who8.webp",
-        "/img/who9.webp"
-      ];
+  function runQuiz() {
+    var detailsList = document.querySelectorAll("details");
+    var items = [];
 
-      var allElements = Array.prototype.slice.call(
-        document.querySelectorAll("details, div, p, blockquote")
-      );
+    for (var i = 0; i < detailsList.length; i++) {
+      var det = detailsList.item(i);
+      var sum = det.querySelector("summary");
+      if (!sum || sum.textContent.indexOf("Показать ответ") === -1) continue;
 
-      var answerBlocks = allElements.filter(function (el) {
-        var text = el.textContent || "";
-        if (text.indexOf("Показать ответ") === -1 || text.length >= 600) {
-          return false;
-        }
-        var children = Array.prototype.slice.call(el.children);
-        var hasChildWithPhrase = children.some(function (child) {
-          return (
-            child.tagName !== "SUMMARY" &&
-            child.tagName !== "STRONG" &&
-            child.tagName !== "B" &&
-            (child.textContent || "").indexOf("Показать ответ") !== -1
-          );
-        });
-        return !hasChildWithPhrase;
+      var ul = det.previousElementSibling;
+      if (!ul || ul.tagName !== "UL") continue;
+
+      var p = ul.previousElementSibling;
+      if (!p || p.tagName !== "P") continue;
+
+      var lis = ul.querySelectorAll("li");
+      if (lis.length < 2) continue;
+
+      // Извлекаем пояснение без <summary> и превращаем **текст** в <strong>текст</strong>
+      var clone = det.cloneNode(true);
+      var cloneSum = clone.querySelector("summary");
+      if (cloneSum) cloneSum.remove();
+      var expHtml = clone.innerHTML
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .trim();
+
+      // Убираем звёздочки и теги, чтобы точно достать букву ответа (A, B, C или D)
+      var plainAns = clone.textContent.replace(/[\*\s]+/g, " ").trim();
+      var firstChar = plainAns.charAt(0).toUpperCase();
+      var ruToEn = { "А": "A", "Б": "B", "В": "C", "Г": "D" };
+      var correct = ruToEn[firstChar] || firstChar;
+
+      var opts = [];
+      for (var j = 0; j < lis.length; j++) {
+        var li = lis.item(j);
+        var rawText = li.textContent.trim();
+        var optChar = rawText.charAt(0).toUpperCase();
+        optChar = ruToEn[optChar] || optChar;
+        var cleanOpt = li.innerHTML.trim().replace(/^[A-DА-Г][\)\.\:]\s*/i, "");
+        opts.push({ letter: optChar, html: cleanOpt });
+      }
+
+      items.push({
+        qHtml: p.innerHTML,
+        options: opts,
+        correct: correct,
+        expHtml: expHtml,
+        pNode: p,
+        ulNode: ul,
+        detNode: det
       });
+    }
 
-      if (!answerBlocks.length) return;
+    if (!items.length) return;
 
-      var questionsData = [];
-      var letterMap = { "А": "A", "Б": "B", "В": "C", "Г": "D" };
+    var total = items.length;
+    var curIdx = 0;
+    var score = 0;
+    var winnings = "$0";
+    var storageKey = "quiz_best_" + window.location.pathname;
 
-      answerBlocks.forEach(function (ansBlock) {
-        var ul = ansBlock.previousElementSibling;
-        while (ul && ul.tagName !== "UL") {
-          ul = ul.previousElementSibling;
+    // Пробуем оба пути: /img/user/ (стандарт Digital Garden) и /img/
+    var logos = [
+      "/img/user/who0.webp", "/img/user/who1.webp", "/img/user/who2.webp",
+      "/img/user/who3.webp", "/img/user/who4.webp", "/img/user/who5.webp",
+      "/img/user/who6.webp", "/img/user/who7.webp", "/img/user/who8.webp",
+      "/img/user/who9.webp",
+      "/img/who0.webp", "/img/who1.webp", "/img/who2.webp",
+      "/img/who3.webp", "/img/who4.webp", "/img/who5.webp",
+      "/img/who6.webp", "/img/who7.webp", "/img/who8.webp",
+      "/img/who9.webp"
+    ];
+
+    var prizes = [
+      "$100", "$200", "$300", "$500", "$1,000",
+      "$2,000", "$4,000", "$8,000", "$16,000", "$32,000",
+      "$64,000", "$125,000", "$250,000", "$500,000", "$750,000", "$1 Million"
+    ];
+
+    function getPrize(step) {
+      if (step === total - 1) return "$1 Million";
+      if (total <= prizes.length) {
+        return prizes.item ? prizes.item(step + (prizes.length - total)) : prizes.slice(step + (prizes.length - total)).shift();
+      }
+      return "$" + (Math.round(((step + 1) / total) * 10000) * 100).toLocaleString("en-US");
+    }
+
+    // Создаём интерфейс студии перед первым вопросом
+    var firstAnchor = items.slice(0, 1).shift().pNode;
+    var bestSaved = localStorage.getItem(storageKey) || "0";
+
+    var board = document.createElement("div");
+    board.className = "quiz-scoreboard";
+    board.innerHTML =
+      '<span class="quiz-stats">Вопрос: <strong class="q-step">1</strong> / ' + total +
+      ' &nbsp;|&nbsp; Верно: <strong class="q-curr">0</strong>' +
+      ' &nbsp;|&nbsp; Рекорд: <strong class="q-best">' + bestSaved + '</strong></span>' +
+      '<button type="button" class="quiz-reset-btn">Начать заново</button>';
+
+    var studio = document.createElement("div");
+    studio.className = "millionaire-studio";
+
+    var stageLeft = document.createElement("div");
+    stageLeft.className = "studio-stage-left";
+
+    var ladderRight = document.createElement("div");
+    ladderRight.className = "studio-ladder-right";
+
+    studio.appendChild(stageLeft);
+    studio.appendChild(ladderRight);
+
+    firstAnchor.parentNode.insertBefore(board, firstAnchor);
+    firstAnchor.parentNode.insertBefore(studio, firstAnchor);
+
+    // Удаляем исходный текст вопросов со страницы
+    items.forEach(function (it) {
+      it.pNode.remove();
+      it.ulNode.remove();
+      it.detNode.remove();
+    });
+
+    // Блок логотипа с автоперебором при ошибке загрузки
+    var logoWrap = document.createElement("div");
+    logoWrap.className = "quiz-logo-wrap";
+    var logoImg = document.createElement("img");
+    logoImg.className = "quiz-logo";
+    logoImg.alt = "Who Wants to Be a Millionaire";
+    logoWrap.appendChild(logoImg);
+
+    function pickLogo() {
+      var pool = logos.slice().sort(function () { return Math.random() - 0.5; });
+      function tryNext() {
+        if (!pool.length) {
+          logoWrap.style.display = "none";
+          return;
         }
-        if (!ul) return;
+        logoWrap.style.display = "flex";
+        logoImg.src = pool.shift();
+      }
+      logoImg.onerror = tryNext;
+      tryNext();
+    }
 
-        var questionP = ul.previousElementSibling;
-        while (questionP && questionP.tagName !== "P") {
-          questionP = questionP.previousElementSibling;
-        }
-        if (!questionP) return;
+    // Строим денежную лесенку справа (сверху вниз)
+    var ladderRows = [];
+    for (var k = total - 1; k >= 0; k--) {
+      var num = k + 1;
+      var isSafe = (num === total || num % 5 === 0);
+      var row = document.createElement("div");
+      row.className = "ladder-row" + (isSafe ? " is-milestone" : "");
+      row.setAttribute("data-idx", String(k));
+      row.innerHTML =
+        '<span class="ladder-num">' + num + '</span>' +
+        '<span class="ladder-diamond">◆</span>' +
+        '<span class="ladder-prize">' + getPrize(k) + '</span>';
+      ladderRight.appendChild(row);
+      ladderRows.push(row);
+    }
 
-        var listItems = Array.prototype.slice.call(ul.querySelectorAll("li"));
-        if (listItems.length < 2) return;
-
-        var cloneAns = ansBlock.cloneNode(true);
-        var summaryEl = cloneAns.querySelector("summary");
-        if (summaryEl) summaryEl.remove();
-
-        var rawExplanation = cloneAns.innerHTML
-          .replace(/Показать ответ\s*/gi, "")
-          .trim();
-
-        var cleanTextForMatch = cloneAns.textContent
-          .replace(/Показать ответ\s*/gi, "")
-          .trim();
-
-        // Extract first letter without array brackets
-        var correctAnswer = "";
-        cleanTextForMatch.replace(/^([A-DА-Г])[\.\)\:\s]/i, function (_, letter) {
-          correctAnswer = letter.toUpperCase();
-          return "";
-        });
-        if (letterMap[correctAnswer]) {
-          correctAnswer = letterMap[correctAnswer];
-        }
-
-        var options = listItems.map(function (li) {
-          var text = li.innerHTML.trim();
-          var choice = "";
-          li.textContent.trim().replace(/^([A-DА-Г])[\)\.\:]\s*/i, function (_, letter) {
-            choice = letter.toUpperCase();
-            return "";
-          });
-          if (letterMap[choice]) {
-            choice = letterMap[choice];
-          }
-          var cleanText = text.replace(/^([A-DА-Г])[\)\.\:]\s*/i, "");
-          return { choice: choice, cleanText: cleanText };
-        });
-
-        questionsData.push({
-          questionHTML: questionP.innerHTML,
-          options: options,
-          correctAnswer: correctAnswer,
-          explanationHTML: rawExplanation,
-          anchorNode: questionP,
-          cleanupNodes: [questionP, ul, ansBlock]
-        });
+    function highlightLadder() {
+      ladderRows.forEach(function (r) {
+        var idx = Number(r.getAttribute("data-idx"));
+        r.classList.toggle("is-active", idx === curIdx);
+        r.classList.toggle("is-passed", idx < curIdx);
       });
+    }
 
-      if (!questionsData.length) return;
+    function getRank(s, t) {
+      var p = Math.round((s / t) * 100);
+      if (p === 100) return { p: p, title: "Миллионер! (5+)", desc: "Безупречный результат — вы забрали $1 Million!" };
+      if (p >= 80)  return { p: p, title: "Отлично (5)", desc: "Прекрасное знание темы!" };
+      if (p >= 60)  return { p: p, title: "Хорошо (4)", desc: "Достойный результат, но есть пара нюансов." };
+      if (p >= 40)  return { p: p, title: "Удовлетворительно (3)", desc: "База есть, стоит повторить материал." };
+      return { p: p, title: "Нужна тренировка (2)", desc: "Изучите пояснения и попробуйте ещё раз." };
+    }
 
-      var totalQuestions = questionsData.length;
-      var pageKey = "quiz_best_" + window.location.pathname;
-      var currentIndex = 0;
-      var currentScore = 0;
-      var currentWinnings = "$0";
+    function showFinal() {
+      var r = getRank(score, total);
+      stageLeft.innerHTML = "";
+      stageLeft.appendChild(logoWrap);
 
-      var classicPrizes = [
-        "$100", "$200", "$300", "$500", "$1,000",
-        "$2,000", "$4,000", "$8,000", "$16,000", "$32,000",
-        "$64,000", "$125,000", "$250,000", "$500,000", "$750,000", "$1 Million"
-      ];
+      var box = document.createElement("div");
+      box.className = "quiz-final-result";
+      box.innerHTML =
+        '<div class="result-header">Игра окончена</div>' +
+        '<div class="result-money">Выигрыш: ' + winnings + '</div>' +
+        '<div class="result-score">Верных ответов: ' + score + ' из ' + total + ' (' + r.p + '%)</div>' +
+        '<div class="result-rank">' + r.title + '</div>' +
+        '<div class="result-msg">' + r.desc + '</div>' +
+        '<button type="button" class="quiz-next-btn result-retry">Сыграть ещё раз</button>';
 
-      function getPrizeForStep(stepIndex) {
-        if (stepIndex === totalQuestions - 1) return "$1 Million";
-        if (totalQuestions <= classicPrizes.length) {
-          var offset = classicPrizes.length - totalQuestions;
-          return classicPrizes.slice(stepIndex + offset, stepIndex + offset + 1).pop();
-        }
-        var scaled = Math.round(((stepIndex + 1) / totalQuestions) * 10000) * 100;
-        return "$" + scaled.toLocaleString("en-US");
-      }
+      stageLeft.appendChild(box);
+      box.querySelector(".result-retry").addEventListener("click", resetAll);
+      ladderRows.forEach(function (row) { row.classList.remove("is-active"); });
+    }
 
-      // Get first item safely without [0]
-      var firstItem = questionsData.slice(0, 1).pop();
-      var firstAnchor = firstItem.anchorNode;
+    function showQuestion(idx) {
+      var q = items.slice(idx, idx + 1).shift();
+      if (!q) return;
 
-      var studioWrapper = document.createElement("div");
-      studioWrapper.className = "millionaire-studio";
+      board.querySelector(".q-step").textContent = String(idx + 1);
+      highlightLadder();
+      stageLeft.innerHTML = "";
 
-      var savedBest = localStorage.getItem(pageKey) || "0";
-      var scoreBoard = document.createElement("div");
-      scoreBoard.className = "quiz-scoreboard";
-      scoreBoard.innerHTML =
-        '<span class="quiz-stats">' +
-        'Вопрос: <strong class="q-step">1</strong> / ' + totalQuestions + ' &nbsp;|&nbsp; ' +
-        'Верно: <strong class="q-curr">0</strong> &nbsp;|&nbsp; ' +
-        'Рекорд: <strong class="q-best">' + savedBest + '</strong>' +
-        '</span>' +
-        '<button type="button" class="quiz-reset-btn">Начать заново</button>';
-
-      firstAnchor.parentNode.insertBefore(scoreBoard, firstAnchor);
-      firstAnchor.parentNode.insertBefore(studioWrapper, firstAnchor);
-
-      questionsData.forEach(function (item) {
-        item.cleanupNodes.forEach(function (node) {
-          if (node && node.parentNode) {
-            node.parentNode.removeChild(node);
-          }
-        });
-      });
-
-      var stageLeft = document.createElement("div");
-      stageLeft.className = "studio-stage-left";
-
-      var ladderRight = document.createElement("div");
-      ladderRight.className = "studio-ladder-right";
-
-      studioWrapper.appendChild(stageLeft);
-      studioWrapper.appendChild(ladderRight);
-
-      // Logo loader with fallback
-      var logoWrap = document.createElement("div");
-      logoWrap.className = "quiz-logo-wrap";
-      var logoImg = document.createElement("img");
-      logoImg.className = "quiz-logo";
-      logoImg.alt = "Who Wants to Be a Millionaire";
-      logoWrap.appendChild(logoImg);
-
-      function loadWorkingLogo() {
-        var pool = quizLogos.slice().sort(function () {
-          return Math.random() - 0.5;
-        });
-        function tryNext() {
-          if (!pool.length) {
-            logoWrap.style.display = "none";
-            return;
-          }
-          logoWrap.style.display = "flex";
-          logoImg.src = pool.shift();
-        }
-        logoImg.onerror = tryNext;
-        tryNext();
-      }
-
-      // Build Money Ladder (top to bottom)
-      var ladderRows = [];
-      for (var i = totalQuestions - 1; i >= 0; i--) {
-        var stepNum = i + 1;
-        var prizeText = getPrizeForStep(i);
-        var isMilestone = stepNum === totalQuestions || stepNum % 5 === 0;
-
-        var row = document.createElement("div");
-        row.className = "ladder-row" + (isMilestone ? " is-milestone" : "");
-        row.setAttribute("data-index", String(i));
-        row.innerHTML =
-          '<span class="ladder-num">' + stepNum + '</span>' +
-          '<span class="ladder-diamond">◆</span>' +
-          '<span class="ladder-prize">' + prizeText + '</span>';
-
-        ladderRight.appendChild(row);
-        ladderRows.push(row);
-      }
-
-      function updateLadderHighlight() {
-        ladderRows.forEach(function (row) {
-          var idx = Number(row.getAttribute("data-index"));
-          row.classList.toggle("is-active", idx === currentIndex);
-          row.classList.toggle("is-passed", idx < currentIndex);
-        });
-      }
-
-      function getGrade(score, total) {
-        var pct = Math.round((score / total) * 100);
-        if (pct === 100) return { pct: pct, rank: "Миллионер! (5+)", msg: "Безупречный результат — вы забрали $1 Million!" };
-        if (pct >= 80)  return { pct: pct, rank: "Отлично (5)", msg: "Прекрасное знание темы!" };
-        if (pct >= 60)  return { pct: pct, rank: "Хорошо (4)", msg: "Достойный результат, но есть пара нюансов." };
-        if (pct >= 40)  return { pct: pct, rank: "Удовлетворительно (3)", msg: "База есть, стоит повторить материал." };
-        return { pct: pct, rank: "Нужна тренировка (2)", msg: "Изучите пояснения и попробуйте ещё раз." };
-      }
-
-      function renderFinalScreen() {
-        var grade = getGrade(currentScore, totalQuestions);
-        stageLeft.innerHTML = "";
+      if (idx === 0) {
         stageLeft.appendChild(logoWrap);
-
-        var finalBox = document.createElement("div");
-        finalBox.className = "quiz-final-result";
-        finalBox.innerHTML =
-          '<div class="result-header">Игра окончена</div>' +
-          '<div class="result-money">Выигрыш: ' + currentWinnings + '</div>' +
-          '<div class="result-score">Верных ответов: ' + currentScore + ' из ' + totalQuestions + ' (' + grade.pct + '%)</div>' +
-          '<div class="result-rank">' + grade.rank + '</div>' +
-          '<div class="result-msg">' + grade.msg + '</div>' +
-          '<button type="button" class="quiz-next-btn result-retry">Сыграть ещё раз</button>';
-
-        stageLeft.appendChild(finalBox);
-        finalBox.querySelector(".result-retry").addEventListener("click", resetQuiz);
-
-        ladderRows.forEach(function (row) {
-          row.classList.remove("is-active");
-        });
       }
 
-      function renderQuestion(index) {
-        var item = questionsData.slice(index, index + 1).pop();
-        if (!item) return;var optionsDiv = document.createElement("div");
-optionsDiv.className = "quiz-options";
-var expDiv = document.createElement("div");
-expDiv.className = "quiz-explanation";
-expDiv.innerHTML = item.explanationHTML;
-expDiv.style.display = "none";
-var nextBtn = document.createElement("button");
-nextBtn.type = "button";
-nextBtn.className = "quiz-next-btn";
-nextBtn.textContent =
-index === totalQuestions - 1
-? "Завершить и узнать результат"
-: "Следующий вопрос →";
-nextBtn.style.display = "none";
-nextBtn.addEventListener("click", function () {
-if (currentIndex < totalQuestions - 1) {
-currentIndex++;
-renderQuestion(currentIndex);
-} else {
-renderFinalScreen();
-}
-});
-var answered = false;
-item.options.forEach(function (opt) {
-var btn = document.createElement("button");
-btn.type = "button";
-btn.className = "quiz-option";
-btn.setAttribute("data-choice", opt.choice);
-btn.innerHTML =
-'' + opt.choice + ':' +
-'' + opt.cleanText + '';
-btn.addEventListener("click", function () {
-if (answered) return;
-answered = true;
-var allBtns = Array.prototype.slice.call(
-optionsDiv.querySelectorAll(".quiz-option")
-);
-if (opt.choice === item.correctAnswer) {
-btn.classList.add("is-correct");
-currentScore++;
-currentWinnings = getPrizeForStep(index);
-} else {
-btn.classList.add("is-wrong");
-allBtns.forEach(function (b) {
-if (b.getAttribute("data-choice") === item.correctAnswer) {
-b.classList.add("is-correct");
-}
-});
-}
-allBtns.forEach(function (b) {
-b.disabled = true;
-});
-expDiv.style.display = "block";
+      var card = document.createElement("div");
+      card.className = "dg-quiz";
+
+      var qTitle = document.createElement("div");
+      qTitle.className = "quiz-question";
+      qTitle.innerHTML = q.qHtml;
+      card.appendChild(qTitle);
+
+      var optsWrap = document.createElement("div");
+      optsWrap.className = "quiz-options";
+
+      var expBox = document.createElement("div");
+      expBox.className = "quiz-explanation";
+      expBox.innerHTML = q.expHtml;
+      expBox.style.display = "none";
+
+      var nextBtn = document.createElement("button");
+      nextBtn.type = "button";
+      nextBtn.className = "quiz-next-btn";
+      nextBtn.textContent = (idx === total - 1) ? "Завершить и узнать результат" : "Следующий вопрос →";
+      nextBtn.style.display = "none";
+
+      nextBtn.addEventListener("click", function () {
+        if (curIdx < total - 1) {
+          curIdx++;
+          showQuestion(curIdx);
+        } else {
+          showFinal();
+        }
+      });
+
+      var locked = false;
+
+      q.options.forEach(function (o) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "quiz-option";
+        btn.setAttribute("data-letter", o.letter);
+        btn.innerHTML = '<span class="quiz-letter">' + o.letter + ':</span><span>' + o.html + '</span>';
+
+        btn.addEventListener("click", function () {
+          if (locked) return;
+          locked = true;
+
+          var all = optsWrap.querySelectorAll(".quiz-option");
+          if (o.letter === q.correct) {
+            btn.classList.add("is-correct");
+            score++;
+            winnings = getPrize(idx);
+          } else {
+            btn.classList.add("is-wrong");
+            for (var m = 0; m < all.length; m++) {
+              if (all.item(m).getAttribute("data-letter") === q.correct) {
+                all.item(m).classList.add("is-correct");
+              }
+            }
+          }
+
+          for (var n = 0; n < all.length; n++) {
+            all.item(n).disabled = true;
+          }
+          expBox.style.display = "block";
+
 nextBtn.style.display = "inline-flex";
-var currEl = scoreBoard.querySelector(".q-curr");
-var bestEl = scoreBoard.querySelector(".q-best");
-if (currEl) currEl.textContent = String(currentScore);
-var prevBest = Number(localStorage.getItem(pageKey) || 0);
-if (currentScore > prevBest) {
-localStorage.setItem(pageKey, String(currentScore));
-if (bestEl) bestEl.textContent = String(currentScore);
+board.querySelector(".q-curr").textContent = String(score);
+var prev = Number(localStorage.getItem(storageKey) || 0);
+if (score > prev) {
+localStorage.setItem(storageKey, String(score));
+board.querySelector(".q-best").textContent = String(score);
 }
 });
-optionsDiv.appendChild(btn);
+optsWrap.appendChild(btn);
 });
-quizBox.appendChild(optionsDiv);
-quizBox.appendChild(expDiv);
-var footerActions = document.createElement("div");
-footerActions.className = "quiz-footer-actions";
-footerActions.appendChild(nextBtn);
-quizBox.appendChild(footerActions);
-stageLeft.appendChild(quizBox);
+card.appendChild(optsWrap);
+card.appendChild(expBox);
+var actions = document.createElement("div");
+actions.className = "quiz-footer-actions";
+actions.appendChild(nextBtn);
+card.appendChild(actions);
+stageLeft.appendChild(card);
 }
-function resetQuiz() {
-currentIndex = 0;
-currentScore = 0;
-currentWinnings = "$0";
-var currEl = scoreBoard.querySelector(".q-curr");
-if (currEl) currEl.textContent = "0";
-loadWorkingLogo();
-renderQuestion(0);
+function resetAll() {
+curIdx = 0;
+score = 0;
+winnings = "$0";
+board.querySelector(".q-curr").textContent = "0";
+pickLogo();
+showQuestion(0);
 }
-scoreBoard.querySelector(".quiz-reset-btn").addEventListener("click", resetQuiz);
-loadWorkingLogo();
-renderQuestion(0);
-} catch (err) {
-console.error("Millionaire Quiz Error:", err);
-}
+board.querySelector(".quiz-reset-btn").addEventListener("click", resetAll);
+pickLogo();
+showQuestion(0);
 }
 if (document.readyState === "loading") {
-document.addEventListener("DOMContentLoaded", initMillionaireQuiz);
+document.addEventListener("DOMContentLoaded", runQuiz);
 } else {
-initMillionaireQuiz();
+runQuiz();
 }
 })();
-
-
-        var stepEl = scoreBoard.querySelector(".q-step");
-        if (stepEl) stepEl.textContent = String(index + 1);
-        updateLadderHighlight();
-
-        stageLeft.innerHTML = "";
-
-        if (index === 0) {
-          stageLeft.appendChild(logoWrap);
-        }
-
-        var quizBox = document.createElement("div");
-        quizBox.className = "dg-quiz";
-
-        var qDiv = document.createElement("div");
-        qDiv.className = "quiz-question";
-        qDiv.innerHTML = item.questionHTML;
-        quizBox.appendChild(qDiv);
-
-
