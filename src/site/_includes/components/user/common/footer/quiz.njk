@@ -49,10 +49,21 @@ window.addEventListener("load", function () {
 
   if (questions.length === 0) return;
 
+  // 1. Hide the fallback instruction paragraph if present
+  var allParagraphs = document.querySelectorAll("p");
+  for (var pIdx = 0; pIdx < allParagraphs.length; pIdx++) {
+    var pEl = allParagraphs.item(pIdx);
+    if (pEl.textContent.indexOf("Выбери вариант, а затем открой") !== -1) {
+      pEl.remove();
+      break;
+    }
+  }
+
   var total = questions.length;
   var cur = 0;
   var score = 0;
-  var money = "$0";
+  var winnings = "$0";
+  var busted = false;
   var key = "quiz_best_" + window.location.pathname;
 
   var logos = [
@@ -81,30 +92,23 @@ window.addEventListener("load", function () {
     return "$" + ((idx + 1) * 1000).toLocaleString("en-US");
   }
 
-  // Безопасное получение первого вопроса без квадратных скобок
   var firstItem = questions.slice(0, 1).pop();
   var firstP = firstItem.pNode;
   var best = localStorage.getItem(key) || "0";
 
+  // 6. Top scoreboard with Выигрыш on the left
   var board = document.createElement("div");
   board.className = "quiz-scoreboard";
   board.innerHTML =
-    '<span class="quiz-stats">Вопрос: <strong class="q-step">1</strong> / ' + total +
+    '<span class="quiz-stats">' +
+    'Выигрыш: <strong class="q-money">$0</strong> &nbsp;|&nbsp; ' +
+    'Вопрос: <strong class="q-step">1</strong> / ' + total +
     ' &nbsp;|&nbsp; Верно: <strong class="q-curr">0</strong>' +
     ' &nbsp;|&nbsp; Рекорд: <strong class="q-best">' + best + '</strong></span>' +
     '<button type="button" class="quiz-reset-btn">Начать заново</button>';
 
   var studio = document.createElement("div");
   studio.className = "millionaire-studio";
-
-  var left = document.createElement("div");
-  left.className = "studio-stage-left";
-
-  var right = document.createElement("div");
-  right.className = "studio-ladder-right";
-
-  studio.appendChild(left);
-  studio.appendChild(right);
 
   firstP.parentNode.insertBefore(board, firstP);
   firstP.parentNode.insertBefore(studio, firstP);
@@ -115,13 +119,15 @@ window.addEventListener("load", function () {
     qItem.detNode.remove();
   });
 
-  var logoWrap = document.createElement("div");
-  logoWrap.className = "quiz-logo-wrap";
-  var logoImg = document.createElement("img");
-  logoImg.className = "quiz-logo";
-  logoWrap.appendChild(logoImg);
+  // 2 & 3. Random logo loader that fills question panel width
+  function createRandomLogo() {
+    var logoWrap = document.createElement("div");
+    logoWrap.className = "quiz-logo-wrap";
+    var logoImg = document.createElement("img");
+    logoImg.className = "quiz-logo";
+    logoImg.alt = "Who Wants to Be a Millionaire";
+    logoWrap.appendChild(logoImg);
 
-  function loadLogo() {
     var pool = logos.slice().sort(function () { return Math.random() - 0.5; });
     function nextImg() {
       if (pool.length === 0) {
@@ -133,49 +139,36 @@ window.addEventListener("load", function () {
     }
     logoImg.onerror = nextImg;
     nextImg();
+
+    return logoWrap;
   }
 
-  var rows = [];
-  for (var r = total - 1; r >= 0; r--) {
-    var num = r + 1;
-    var safe = (num === total || num % 5 === 0);
-    var row = document.createElement("div");
-    row.className = "ladder-row" + (safe ? " is-milestone" : "");
-    row.setAttribute("data-idx", String(r));
-    row.innerHTML =
-      '<span class="ladder-num">' + num + '</span>' +
-      '<span class="ladder-diamond">◆</span>' +
-      '<span class="ladder-prize">' + getMoney(r) + '</span>';
-    right.appendChild(row);
-    rows.push(row);
-  }
-
-  function updateLadder() {
-    rows.forEach(function (rowEl) {
-      var idx = Number(rowEl.getAttribute("data-idx"));
-      rowEl.classList.toggle("is-active", idx === cur);
-      rowEl.classList.toggle("is-passed", idx < cur);
-    });
+  function getRank(s, t) {
+    var p = Math.round((s / t) * 100);
+    if (p === 100) return { p: p, title: "Миллионер! (5+)", desc: "Безупречный результат — вы забрали $1 Million!" };
+    if (p >= 80)  return { p: p, title: "Отлично (5)", desc: "Прекрасное знание темы!" };
+    if (p >= 60)  return { p: p, title: "Хорошо (4)", desc: "Достойный результат, но есть пара нюансов." };
+    if (p >= 40)  return { p: p, title: "Удовлетворительно (3)", desc: "База есть, стоит повторить материал." };
+    return { p: p, title: "Нужна тренировка (2)", desc: "Изучите пояснения и попробуйте ещё раз." };
   }
 
   function showEnd() {
-    var pct = Math.round((score / total) * 100);
-    var rank = pct === 100 ? "Миллионер! (5+)" : pct >= 80 ? "Отлично (5)" : pct >= 60 ? "Хорошо (4)" : pct >= 40 ? "Удовлетворительно (3)" : "Нужна тренировка (2)";
-    left.innerHTML = "";
-    left.appendChild(logoWrap);
+    var r = getRank(score, total);
+    studio.innerHTML = "";
+    studio.appendChild(createRandomLogo());
 
     var endBox = document.createElement("div");
     endBox.className = "quiz-final-result";
     endBox.innerHTML =
       '<div class="result-header">Игра окончена</div>' +
-      '<div class="result-money">Выигрыш: ' + money + '</div>' +
-      '<div class="result-score">Верных ответов: ' + score + ' из ' + total + ' (' + pct + '%)</div>' +
-      '<div class="result-rank">' + rank + '</div>' +
+      '<div class="result-money">Итоговый выигрыш: ' + winnings + '</div>' +
+      '<div class="result-score">Верных ответов: ' + score + ' из ' + total + ' (' + r.p + '%)</div>' +
+      '<div class="result-rank">' + r.title + '</div>' +
+      '<div class="result-msg">' + r.desc + '</div>' +
       '<button type="button" class="quiz-next-btn result-retry">Сыграть ещё раз</button>';
 
-    left.appendChild(endBox);
+    studio.appendChild(endBox);
     endBox.querySelector(".result-retry").addEventListener("click", resetGame);
-    rows.forEach(function (rowEl) { rowEl.classList.remove("is-active"); });
   }
 
   function renderStep(idx) {
@@ -183,12 +176,10 @@ window.addEventListener("load", function () {
     if (!item) return;
 
     board.querySelector(".q-step").textContent = String(idx + 1);
-    updateLadder();
-    left.innerHTML = "";
+    studio.innerHTML = "";
 
-    if (idx === 0) {
-      left.appendChild(logoWrap);
-    }
+    // Show a random logo on EVERY question
+    studio.appendChild(createRandomLogo());
 
     var card = document.createElement("div");
     card.className = "dg-quiz";
@@ -238,9 +229,14 @@ window.addEventListener("load", function () {
         if (opt.letter === item.correct) {
           btn.classList.add("is-correct");
           score++;
-          money = getMoney(idx);
+          if (!busted) {
+            winnings = getMoney(idx);
+          }
         } else {
           btn.classList.add("is-wrong");
+          // Any wrong answer drops prize money to $0
+          busted = true;
+          winnings = "$0";
           for (var m = 0; m < allBtns.length; m++) {
             if (allBtns.item(m).getAttribute("data-letter") === item.correct) {
               allBtns.item(m).classList.add("is-correct");
@@ -254,7 +250,9 @@ window.addEventListener("load", function () {
         expDiv.style.display = "block";
         nextBtn.style.display = "inline-flex";
 
+        board.querySelector(".q-money").textContent = winnings;
         board.querySelector(".q-curr").textContent = String(score);
+
         var prev = Number(localStorage.getItem(key) || 0);
         if (score > prev) {
           localStorage.setItem(key, String(score));
@@ -273,21 +271,21 @@ window.addEventListener("load", function () {
     footer.appendChild(nextBtn);
     card.appendChild(footer);
 
-    left.appendChild(card);
+    studio.appendChild(card);
   }
 
   function resetGame() {
     cur = 0;
     score = 0;
-    money = "$0";
+    winnings = "$0";
+    busted = false;
+    board.querySelector(".q-money").textContent = "$0";
     board.querySelector(".q-curr").textContent = "0";
-    loadLogo();
     renderStep(0);
   }
 
   board.querySelector(".quiz-reset-btn").addEventListener("click", resetGame);
 
-  loadLogo();
   renderStep(0);
 });
 </script>
