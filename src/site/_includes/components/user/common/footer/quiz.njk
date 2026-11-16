@@ -1,0 +1,68 @@
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const quizzes = document.querySelectorAll(".dg-quiz");
+  if (!quizzes.length) return;
+
+  const pageKey = `quiz_best_${window.location.pathname}`;
+  let currentScore = 0;
+  const totalQuestions = quizzes.length;
+
+  const firstQuiz = quizzes;
+  const scoreBoard = document.createElement("div");
+  scoreBoard.className = "quiz-scoreboard";
+  const savedBest = localStorage.getItem(pageKey) || "0";
+  scoreBoard.innerHTML = `Score: <strong class="q-curr">0</strong> / ${totalQuestions} &nbsp;|&nbsp; Best: <strong class="q-best">${savedBest}</strong>`;
+  firstQuiz.parentNode.insertBefore(scoreBoard, firstQuiz);
+
+  const updateScore = () => {
+    const currEl = scoreBoard.querySelector(".q-curr");
+    const bestEl = scoreBoard.querySelector(".q-best");
+    if (currEl) currEl.textContent = String(currentScore);
+
+    const prevBest = Number(localStorage.getItem(pageKey) || 0);
+    if (currentScore > prevBest) {
+      localStorage.setItem(pageKey, String(currentScore));
+      if (bestEl) bestEl.textContent = String(currentScore);
+    }
+  };
+
+  quizzes.forEach((quiz) => {
+    const correctAnswer = quiz.dataset.answer?.trim().toUpperCase();
+    const explanation = quiz.querySelector(".quiz-explanation");
+    const options = quiz.querySelectorAll(".quiz-option");
+
+    if (explanation) explanation.style.display = "none";
+
+    options.forEach((btn) => {
+      // Style "A)" or "A:" into a gold TV-show prefix
+      const choice = btn.dataset.choice?.trim().toUpperCase();
+      const cleanText = btn.innerHTML.replace(/^[A-D][\)\:\.]\s*/i, "");
+      if (choice) {
+        btn.innerHTML = `<span class="quiz-letter">${choice}:</span><span>${cleanText}</span>`;
+      }
+
+      btn.addEventListener("click", () => {
+        if (quiz.dataset.answered === "true") return;
+        quiz.dataset.answered = "true";
+
+        if (choice === correctAnswer) {
+          btn.classList.add("is-correct");
+          currentScore++;
+        } else {
+          btn.classList.add("is-wrong");
+          options.forEach((opt) => {
+            if (opt.dataset.choice?.trim().toUpperCase() === correctAnswer) {
+              opt.classList.add("is-correct");
+            }
+          });
+        }
+
+        options.forEach((opt) => (opt.disabled = true));
+        if (explanation) explanation.style.display = "block";
+
+        updateScore();
+      });
+    });
+  });
+});
+</script>
