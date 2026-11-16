@@ -1,309 +1,285 @@
 <script>
-(function () {
-  function runQuiz() {
-    var detailsList = document.querySelectorAll("details");
-    var items = [];
+window.addEventListener("load", function () {
+  var details = document.querySelectorAll("details");
+  var questions = [];
 
-    for (var i = 0; i < detailsList.length; i++) {
-      var det = detailsList.item(i);
-      var sum = det.querySelector("summary");
-      if (!sum || sum.textContent.indexOf("Показать ответ") === -1) continue;
+  for (var i = 0; i < details.length; i++) {
+    var det = details[i];
+    var sum = det.querySelector("summary");
+    if (!sum || sum.textContent.indexOf("Показать ответ") === -1) continue;
 
-      var ul = det.previousElementSibling;
-      if (!ul || ul.tagName !== "UL") continue;
+    var ul = det.previousElementSibling;
+    if (!ul || ul.tagName !== "UL") continue;
 
-      var p = ul.previousElementSibling;
-      if (!p || p.tagName !== "P") continue;
+    var p = ul.previousElementSibling;
+    if (!p || p.tagName !== "P") continue;
 
-      var lis = ul.querySelectorAll("li");
-      if (lis.length < 2) continue;
+    var lis = ul.querySelectorAll("li");
+    if (lis.length < 2) continue;
 
-      // Извлекаем пояснение без <summary> и превращаем **текст** в <strong>текст</strong>
-      var clone = det.cloneNode(true);
-      var cloneSum = clone.querySelector("summary");
-      if (cloneSum) cloneSum.remove();
-      var expHtml = clone.innerHTML
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        .trim();
+    var clone = det.cloneNode(true);
+    var cSum = clone.querySelector("summary");
+    if (cSum) cSum.remove();
 
-      // Убираем звёздочки и теги, чтобы точно достать букву ответа (A, B, C или D)
-      var plainAns = clone.textContent.replace(/[\*\s]+/g, " ").trim();
-      var firstChar = plainAns.charAt(0).toUpperCase();
-      var ruToEn = { "А": "A", "Б": "B", "В": "C", "Г": "D" };
-      var correct = ruToEn[firstChar] || firstChar;
+    var expHtml = clone.innerHTML.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").trim();
+    var plain = clone.textContent.replace(/[\*\s]+/g, " ").trim();
+    var firstChar = plain.charAt(0).toUpperCase();
+    var map = { "А": "A", "Б": "B", "В": "C", "Г": "D" };
+    var correct = map[firstChar] || firstChar;
 
-      var opts = [];
-      for (var j = 0; j < lis.length; j++) {
-        var li = lis.item(j);
-        var rawText = li.textContent.trim();
-        var optChar = rawText.charAt(0).toUpperCase();
-        optChar = ruToEn[optChar] || optChar;
-        var cleanOpt = li.innerHTML.trim().replace(/^[A-DА-Г][\)\.\:]\s*/i, "");
-        opts.push({ letter: optChar, html: cleanOpt });
-      }
-
-      items.push({
-        qHtml: p.innerHTML,
-        options: opts,
-        correct: correct,
-        expHtml: expHtml,
-        pNode: p,
-        ulNode: ul,
-        detNode: det
-      });
+    var opts = [];
+    for (var j = 0; j < lis.length; j++) {
+      var li = lis[j];
+      var ch = li.textContent.trim().charAt(0).toUpperCase();
+      ch = map[ch] || ch;
+      var txt = li.innerHTML.trim().replace(/^[A-DА-Г][\)\.\:]\s*/i, "");
+      opts.push({ letter: ch, html: txt });
     }
 
-    if (!items.length) return;
+    questions.push({
+      qHtml: p.innerHTML,
+      options: opts,
+      correct: correct,
+      expHtml: expHtml,
+      pNode: p,
+      ulNode: ul,
+      detNode: det
+    });
+  }
 
-    var total = items.length;
-    var curIdx = 0;
-    var score = 0;
-    var winnings = "$0";
-    var storageKey = "quiz_best_" + window.location.pathname;
+  if (questions.length === 0) return;
 
-    // Пробуем оба пути: /img/user/ (стандарт Digital Garden) и /img/
-    var logos = [
-      "/img/user/who0.webp", "/img/user/who1.webp", "/img/user/who2.webp",
-      "/img/user/who3.webp", "/img/user/who4.webp", "/img/user/who5.webp",
-      "/img/user/who6.webp", "/img/user/who7.webp", "/img/user/who8.webp",
-      "/img/user/who9.webp",
-      "/img/who0.webp", "/img/who1.webp", "/img/who2.webp",
-      "/img/who3.webp", "/img/who4.webp", "/img/who5.webp",
-      "/img/who6.webp", "/img/who7.webp", "/img/who8.webp",
-      "/img/who9.webp"
-    ];
+  var total = questions.length;
+  var cur = 0;
+  var score = 0;
+  var money = "$0";
+  var key = "quiz_best_" + window.location.pathname;
 
-    var prizes = [
-      "$100", "$200", "$300", "$500", "$1,000",
-      "$2,000", "$4,000", "$8,000", "$16,000", "$32,000",
-      "$64,000", "$125,000", "$250,000", "$500,000", "$750,000", "$1 Million"
-    ];
+  var logos = [
+    "/img/user/who0.webp", "/img/user/who1.webp", "/img/user/who2.webp",
+    "/img/user/who3.webp", "/img/user/who4.webp", "/img/user/who5.webp",
+    "/img/user/who6.webp", "/img/user/who7.webp", "/img/user/who8.webp",
+    "/img/user/who9.webp", "/img/who0.webp", "/img/who1.webp"
+  ];
 
-    function getPrize(step) {
-      if (step === total - 1) return "$1 Million";
-      if (total <= prizes.length) {
-        return prizes.item ? prizes.item(step + (prizes.length - total)) : prizes.slice(step + (prizes.length - total)).shift();
+  var prizeList = [
+    "$100", "$200", "$300", "$500", "$1,000",
+    "$2,000", "$4,000", "$8,000", "$16,000", "$32,000",
+    "$64,000", "$125,000", "$250,000", "$500,000", "$750,000", "$1 Million"
+  ];
+
+  function getMoney(idx) {
+    if (idx === total - 1) return "$1 Million";
+    var offset = prizeList.length - total;
+    if (offset >= 0 && prizeList[idx + offset]) {
+      return prizeList[idx + offset];
+    }
+    return "$" + ((idx + 1) * 1000).toLocaleString("en-US");
+  }
+
+  var firstP = questions[0].pNode;
+  var best = localStorage.getItem(key) || "0";
+
+  var board = document.createElement("div");
+  board.className = "quiz-scoreboard";
+  board.innerHTML =
+    '<span class="quiz-stats">Вопрос: <strong class="q-step">1</strong> / ' + total +
+    ' &nbsp;|&nbsp; Верно: <strong class="q-curr">0</strong>' +
+    ' &nbsp;|&nbsp; Рекорд: <strong class="q-best">' + best + '</strong></span>' +
+    '<button type="button" class="quiz-reset-btn">Начать заново</button>';
+
+  var studio = document.createElement("div");
+  studio.className = "millionaire-studio";
+
+  var left = document.createElement("div");
+  left.className = "studio-stage-left";
+
+  var right = document.createElement("div");
+  right.className = "studio-ladder-right";
+
+  studio.appendChild(left);
+  studio.appendChild(right);
+
+  firstP.parentNode.insertBefore(board, firstP);
+  firstP.parentNode.insertBefore(studio, firstP);
+
+  for (var x = 0; x < questions.length; x++) {
+    questions[x].pNode.remove();
+    questions[x].ulNode.remove();
+    questions[x].detNode.remove();
+  }
+
+  var logoWrap = document.createElement("div");
+  logoWrap.className = "quiz-logo-wrap";
+  var logoImg = document.createElement("img");
+  logoImg.className = "quiz-logo";
+  logoWrap.appendChild(logoImg);
+
+  function loadLogo() {
+    var pool = logos.slice().sort(function () { return Math.random() - 0.5; });
+    function nextImg() {
+      if (pool.length === 0) {
+        logoWrap.style.display = "none";
+        return;
       }
-      return "$" + (Math.round(((step + 1) / total) * 10000) * 100).toLocaleString("en-US");
+      logoWrap.style.display = "flex";
+      logoImg.src = pool.shift();
+    }
+    logoImg.onerror = nextImg;
+    nextImg();
+  }
+
+  var rows = [];
+  for (var r = total - 1; r >= 0; r--) {
+    var num = r + 1;
+    var safe = (num === total || num % 5 === 0);
+    var row = document.createElement("div");
+    row.className = "ladder-row" + (safe ? " is-milestone" : "");
+    row.setAttribute("data-idx", String(r));
+    row.innerHTML =
+      '<span class="ladder-num">' + num + '</span>' +
+      '<span class="ladder-diamond">◆</span>' +
+      '<span class="ladder-prize">' + getMoney(r) + '</span>';
+    right.appendChild(row);
+    rows.push(row);
+  }
+
+  function updateLadder() {
+    for (var i = 0; i < rows.length; i++) {
+      var idx = Number(rows[i].getAttribute("data-idx"));
+      rows[i].classList.toggle("is-active", idx === cur);
+      rows[i].classList.toggle("is-passed", idx < cur);
+    }
+  }
+
+  function showEnd() {
+    var pct = Math.round((score / total) * 100);
+    var rank = pct === 100 ? "Миллионер! (5+)" : pct >= 80 ? "Отлично (5)" : pct >= 60 ? "Хорошо (4)" : pct >= 40 ? "Удовлетворительно (3)" : "Нужна тренировка (2)";
+    left.innerHTML = "";
+    left.appendChild(logoWrap);
+
+    var endBox = document.createElement("div");
+    endBox.className = "quiz-final-result";
+    endBox.innerHTML =
+      '<div class="result-header">Игра окончена</div>' +
+      '<div class="result-money">Выигрыш: ' + money + '</div>' +
+      '<div class="result-score">Верных ответов: ' + score + ' из ' + total + ' (' + pct + '%)</div>' +
+      '<div class="result-rank">' + rank + '</div>' +
+      '<button type="button" class="quiz-next-btn result-retry">Сыграть ещё раз</button>';
+
+    left.appendChild(endBox);
+    endBox.querySelector(".result-retry").addEventListener("click", resetGame);
+    for (var i = 0; i < rows.length; i++) rows[i].classList.remove("is-active");
+  }
+
+  function renderStep(idx) {
+    var item = questions[idx];
+    board.querySelector(".q-step").textContent = String(idx + 1);
+    updateLadder();
+    left.innerHTML = "";
+
+    if (idx === 0) {
+      left.appendChild(logoWrap);
     }
 
-    // Создаём интерфейс студии перед первым вопросом
-    var firstAnchor = items.slice(0, 1).shift().pNode;
-    var bestSaved = localStorage.getItem(storageKey) || "0";
+    var card = document.createElement("div");
+    card.className = "dg-quiz";
 
-    var board = document.createElement("div");
-    board.className = "quiz-scoreboard";
-    board.innerHTML =
-      '<span class="quiz-stats">Вопрос: <strong class="q-step">1</strong> / ' + total +
-      ' &nbsp;|&nbsp; Верно: <strong class="q-curr">0</strong>' +
-      ' &nbsp;|&nbsp; Рекорд: <strong class="q-best">' + bestSaved + '</strong></span>' +
-      '<button type="button" class="quiz-reset-btn">Начать заново</button>';
+    var qDiv = document.createElement("div");
+    qDiv.className = "quiz-question";
+    qDiv.innerHTML = item.qHtml;
+    card.appendChild(qDiv);
 
-    var studio = document.createElement("div");
-    studio.className = "millionaire-studio";
+    var optsDiv = document.createElement("div");
+    optsDiv.className = "quiz-options";
 
-    var stageLeft = document.createElement("div");
-    stageLeft.className = "studio-stage-left";
+    var expDiv = document.createElement("div");
+    expDiv.className = "quiz-explanation";
+    expDiv.innerHTML = item.expHtml;
+    expDiv.style.display = "none";
 
-    var ladderRight = document.createElement("div");
-    ladderRight.className = "studio-ladder-right";
+    var nextBtn = document.createElement("button");
+    nextBtn.type = "button";
+    nextBtn.className = "quiz-next-btn";
+    nextBtn.textContent = (idx === total - 1) ? "Завершить и узнать результат" : "Следующий вопрос →";
+    nextBtn.style.display = "none";
 
-    studio.appendChild(stageLeft);
-    studio.appendChild(ladderRight);
-
-    firstAnchor.parentNode.insertBefore(board, firstAnchor);
-    firstAnchor.parentNode.insertBefore(studio, firstAnchor);
-
-    // Удаляем исходный текст вопросов со страницы
-    items.forEach(function (it) {
-      it.pNode.remove();
-      it.ulNode.remove();
-      it.detNode.remove();
+    nextBtn.addEventListener("click", function () {
+      if (cur < total - 1) {
+        cur++;
+        renderStep(cur);
+      } else {
+        showEnd();
+      }
     });
 
-    // Блок логотипа с автоперебором при ошибке загрузки
-    var logoWrap = document.createElement("div");
-    logoWrap.className = "quiz-logo-wrap";
-    var logoImg = document.createElement("img");
-    logoImg.className = "quiz-logo";
-    logoImg.alt = "Who Wants to Be a Millionaire";
-    logoWrap.appendChild(logoImg);
+    var answered = false;
 
-    function pickLogo() {
-      var pool = logos.slice().sort(function () { return Math.random() - 0.5; });
-      function tryNext() {
-        if (!pool.length) {
-          logoWrap.style.display = "none";
-          return;
-        }
-        logoWrap.style.display = "flex";
-        logoImg.src = pool.shift();
-      }
-      logoImg.onerror = tryNext;
-      tryNext();
-    }
-
-    // Строим денежную лесенку справа (сверху вниз)
-    var ladderRows = [];
-    for (var k = total - 1; k >= 0; k--) {
-      var num = k + 1;
-      var isSafe = (num === total || num % 5 === 0);
-      var row = document.createElement("div");
-      row.className = "ladder-row" + (isSafe ? " is-milestone" : "");
-      row.setAttribute("data-idx", String(k));
-      row.innerHTML =
-        '<span class="ladder-num">' + num + '</span>' +
-        '<span class="ladder-diamond">◆</span>' +
-        '<span class="ladder-prize">' + getPrize(k) + '</span>';
-      ladderRight.appendChild(row);
-      ladderRows.push(row);
-    }
-
-    function highlightLadder() {
-      ladderRows.forEach(function (r) {
-        var idx = Number(r.getAttribute("data-idx"));
-        r.classList.toggle("is-active", idx === curIdx);
-        r.classList.toggle("is-passed", idx < curIdx);
-      });
-    }
-
-    function getRank(s, t) {
-      var p = Math.round((s / t) * 100);
-      if (p === 100) return { p: p, title: "Миллионер! (5+)", desc: "Безупречный результат — вы забрали $1 Million!" };
-      if (p >= 80)  return { p: p, title: "Отлично (5)", desc: "Прекрасное знание темы!" };
-      if (p >= 60)  return { p: p, title: "Хорошо (4)", desc: "Достойный результат, но есть пара нюансов." };
-      if (p >= 40)  return { p: p, title: "Удовлетворительно (3)", desc: "База есть, стоит повторить материал." };
-      return { p: p, title: "Нужна тренировка (2)", desc: "Изучите пояснения и попробуйте ещё раз." };
-    }
-
-    function showFinal() {
-      var r = getRank(score, total);
-      stageLeft.innerHTML = "";
-      stageLeft.appendChild(logoWrap);
-
-      var box = document.createElement("div");
-      box.className = "quiz-final-result";
-      box.innerHTML =
-        '<div class="result-header">Игра окончена</div>' +
-        '<div class="result-money">Выигрыш: ' + winnings + '</div>' +
-        '<div class="result-score">Верных ответов: ' + score + ' из ' + total + ' (' + r.p + '%)</div>' +
-        '<div class="result-rank">' + r.title + '</div>' +
-        '<div class="result-msg">' + r.desc + '</div>' +
-        '<button type="button" class="quiz-next-btn result-retry">Сыграть ещё раз</button>';
-
-      stageLeft.appendChild(box);
-      box.querySelector(".result-retry").addEventListener("click", resetAll);
-      ladderRows.forEach(function (row) { row.classList.remove("is-active"); });
-    }
-
-    function showQuestion(idx) {
-      var q = items.slice(idx, idx + 1).shift();
-      if (!q) return;
-
-      board.querySelector(".q-step").textContent = String(idx + 1);
-      highlightLadder();
-      stageLeft.innerHTML = "";
-
-      if (idx === 0) {
-        stageLeft.appendChild(logoWrap);
-      }
-
-      var card = document.createElement("div");
-      card.className = "dg-quiz";
-
-      var qTitle = document.createElement("div");
-      qTitle.className = "quiz-question";
-      qTitle.innerHTML = q.qHtml;
-      card.appendChild(qTitle);
-
-      var optsWrap = document.createElement("div");
-      optsWrap.className = "quiz-options";
-
-      var expBox = document.createElement("div");
-      expBox.className = "quiz-explanation";
-      expBox.innerHTML = q.expHtml;
-      expBox.style.display = "none";
-
-      var nextBtn = document.createElement("button");
-      nextBtn.type = "button";
-      nextBtn.className = "quiz-next-btn";
-      nextBtn.textContent = (idx === total - 1) ? "Завершить и узнать результат" : "Следующий вопрос →";
-      nextBtn.style.display = "none";
-
-      nextBtn.addEventListener("click", function () {
-        if (curIdx < total - 1) {
-          curIdx++;
-          showQuestion(curIdx);
-        } else {
-          showFinal();
-        }
-      });
-
-      var locked = false;
-
-      q.options.forEach(function (o) {
+    for (var k = 0; k < item.options.length; k++) {
+      (function (opt) {
         var btn = document.createElement("button");
         btn.type = "button";
         btn.className = "quiz-option";
-        btn.setAttribute("data-letter", o.letter);
-        btn.innerHTML = '<span class="quiz-letter">' + o.letter + ':</span><span>' + o.html + '</span>';
+        btn.setAttribute("data-letter", opt.letter);
+        btn.innerHTML = '<span class="quiz-letter">' + opt.letter + ':</span><span>' + opt.html + '</span>';
 
         btn.addEventListener("click", function () {
-          if (locked) return;
-          locked = true;
+          if (answered) return;
+          answered = true;
 
-          var all = optsWrap.querySelectorAll(".quiz-option");
-          if (o.letter === q.correct) {
+          var allBtns = optsDiv.querySelectorAll(".quiz-option");
+          if (opt.letter === item.correct) {
             btn.classList.add("is-correct");
             score++;
-            winnings = getPrize(idx);
+            money = getMoney(idx);
           } else {
             btn.classList.add("is-wrong");
-            for (var m = 0; m < all.length; m++) {
-              if (all.item(m).getAttribute("data-letter") === q.correct) {
-                all.item(m).classList.add("is-correct");
+            for (var m = 0; m < allBtns.length; m++) {
+              if (allBtns[m].getAttribute("data-letter") === item.correct) {
+                allBtns[m].classList.add("is-correct");
               }
             }
           }
 
-          for (var n = 0; n < all.length; n++) {
-            all.item(n).disabled = true;
-          }
-          expBox.style.display = "block";
+          for (var n = 0; n < allBtns.length; n++) allBtns[n].disabled = true;
+          expDiv.style.display = "block";
+          nextBtn.style.display = "inline-flex";
 
-nextBtn.style.display = "inline-flex";
-board.querySelector(".q-curr").textContent = String(score);
-var prev = Number(localStorage.getItem(storageKey) || 0);
-if (score > prev) {
-localStorage.setItem(storageKey, String(score));
-board.querySelector(".q-best").textContent = String(score);
-}
+          board.querySelector(".q-curr").textContent = String(score);
+          var prevBest = Number(localStorage.getItem(key) || 0);
+          if (score > prevBest) {
+            localStorage.setItem(key, String(score));
+            board.querySelector(".q-best").textContent = String(score);
+          }
+        });
+
+        optsDiv.appendChild(btn);
+      })(item.options[k]);
+    }
+
+    card.appendChild(optsDiv);
+    card.appendChild(expDiv);
+
+    var footer = document.createElement("div");
+    footer.className = "quiz-footer-actions";
+    footer.appendChild(nextBtn);
+    card.appendChild(footer);
+
+    left.appendChild(card);
+  }
+
+  function resetGame() {
+    cur = 0;
+    score = 0;
+    money = "$0";
+    board.querySelector(".q-curr").textContent = "0";
+    loadLogo();
+    renderStep(0);
+  }
+
+  board.querySelector(".quiz-reset-btn").addEventListener("click", resetGame);
+
+  loadLogo();
+  renderStep(0);
 });
-optsWrap.appendChild(btn);
-});
-card.appendChild(optsWrap);
-card.appendChild(expBox);
-var actions = document.createElement("div");
-actions.className = "quiz-footer-actions";
-actions.appendChild(nextBtn);
-card.appendChild(actions);
-stageLeft.appendChild(card);
-}
-function resetAll() {
-curIdx = 0;
-score = 0;
-winnings = "$0";
-board.querySelector(".q-curr").textContent = "0";
-pickLogo();
-showQuestion(0);
-}
-board.querySelector(".quiz-reset-btn").addEventListener("click", resetAll);
-pickLogo();
-showQuestion(0);
-}
-if (document.readyState === "loading") {
-document.addEventListener("DOMContentLoaded", runQuiz);
-} else {
-runQuiz();
-}
-})();
+</script>
