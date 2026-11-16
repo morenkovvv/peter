@@ -15,7 +15,6 @@
         "/img/who9.webp"
       ];
 
-      // Find all elements containing "Показать ответ"
       var allElements = Array.prototype.slice.call(
         document.querySelectorAll("details, div, p, blockquote")
       );
@@ -70,16 +69,23 @@
           .replace(/Показать ответ\s*/gi, "")
           .trim();
 
-        var answerMatch = cleanTextForMatch.match(/^([A-DА-Г])[\.\)\:\s]/i);
-        var correctAnswer = answerMatch ? answerMatch[1].toUpperCase() : "";
+        // Extract first letter without array brackets
+        var correctAnswer = "";
+        cleanTextForMatch.replace(/^([A-DА-Г])[\.\)\:\s]/i, function (_, letter) {
+          correctAnswer = letter.toUpperCase();
+          return "";
+        });
         if (letterMap[correctAnswer]) {
           correctAnswer = letterMap[correctAnswer];
         }
 
         var options = listItems.map(function (li) {
           var text = li.innerHTML.trim();
-          var optMatch = li.textContent.trim().match(/^([A-DА-Г])[\)\.\:]\s*/i);
-          var choice = optMatch ? optMatch[1].toUpperCase() : "";
+          var choice = "";
+          li.textContent.trim().replace(/^([A-DА-Г])[\)\.\:]\s*/i, function (_, letter) {
+            choice = letter.toUpperCase();
+            return "";
+          });
           if (letterMap[choice]) {
             choice = letterMap[choice];
           }
@@ -115,14 +121,16 @@
         if (stepIndex === totalQuestions - 1) return "$1 Million";
         if (totalQuestions <= classicPrizes.length) {
           var offset = classicPrizes.length - totalQuestions;
-          return classicPrizes[stepIndex + offset];
+          return classicPrizes.slice(stepIndex + offset, stepIndex + offset + 1).pop();
         }
         var scaled = Math.round(((stepIndex + 1) / totalQuestions) * 10000) * 100;
         return "$" + scaled.toLocaleString("en-US");
       }
 
-      // Build main TV Studio Stage wrapper
-      var firstAnchor = questionsData[0].anchorNode;
+      // Get first item safely without [0]
+      var firstItem = questionsData.slice(0, 1).pop();
+      var firstAnchor = firstItem.anchorNode;
+
       var studioWrapper = document.createElement("div");
       studioWrapper.className = "millionaire-studio";
 
@@ -140,7 +148,6 @@
       firstAnchor.parentNode.insertBefore(scoreBoard, firstAnchor);
       firstAnchor.parentNode.insertBefore(studioWrapper, firstAnchor);
 
-      // Remove original plain Markdown blocks
       questionsData.forEach(function (item) {
         item.cleanupNodes.forEach(function (node) {
           if (node && node.parentNode) {
@@ -242,12 +249,9 @@
       }
 
       function renderQuestion(index) {
-        var item = questionsData[index];
-        if (!item) return;
-
-        var stepEl = scoreBoard.querySelector(".q-step");
-        if (stepEl) stepEl.textContent = String(index + 1);
-        updateLadderHighlight();
+        var item = questionsData.slice(index, index + 1).pop();
+        if (!item) return;var optionsDiv = document.createElement("div");
+optionsDiv.className = "quiz-options";
 var expDiv = document.createElement("div");
 expDiv.className = "quiz-explanation";
 expDiv.innerHTML = item.explanationHTML;
@@ -342,6 +346,11 @@ initMillionaireQuiz();
 }
 })();
 
+
+        var stepEl = scoreBoard.querySelector(".q-step");
+        if (stepEl) stepEl.textContent = String(index + 1);
+        updateLadderHighlight();
+
         stageLeft.innerHTML = "";
 
         if (index === 0) {
@@ -355,8 +364,5 @@ initMillionaireQuiz();
         qDiv.className = "quiz-question";
         qDiv.innerHTML = item.questionHTML;
         quizBox.appendChild(qDiv);
-
-        var optionsDiv = document.createElement("div");
-        optionsDiv.className = "quiz-options";
 
 
