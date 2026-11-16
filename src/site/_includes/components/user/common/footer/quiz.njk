@@ -5,19 +5,16 @@
       "/img/who0.webp",
       "/img/who1.webp",
       "/img/who2.webp",
-      "/img/who3.webp"
+      "/img/who3.webp",
       "/img/who4.webp",
       "/img/who5.webp",
       "/img/who6.webp",
-      "/img/who7.webp"
+      "/img/who7.webp",
       "/img/who8.webp",
-      "/img/who9.webp",
+      "/img/who9.webp"
     ];
 
-    const getRandomLogo = () =>
-      quizLogos.at(Math.floor(Math.random() * quizLogos.length));
-
-    // Find all elements on the page containing "Показать ответ"
+    // Find all elements containing "Показать ответ"
     const allElements = Array.from(document.querySelectorAll("details, div, p, blockquote"));
     const answerBlocks = allElements.filter((el) => {
       const text = el.textContent || "";
@@ -34,17 +31,15 @@
 
     if (!answerBlocks.length) return;
 
-    const convertedQuizzes = [];
+    const questionsData = [];
 
     answerBlocks.forEach((ansBlock) => {
-      // Walk backward to find the <ul> list of options
       let ul = ansBlock.previousElementSibling;
       while (ul && ul.tagName !== "UL") {
         ul = ul.previousElementSibling;
       }
       if (!ul) return;
 
-      // Walk backward from <ul> to find the <p> question
       let questionP = ul.previousElementSibling;
       while (questionP && questionP.tagName !== "P") {
         questionP = questionP.previousElementSibling;
@@ -54,209 +49,283 @@
       const listItems = Array.from(ul.querySelectorAll("li"));
       if (listItems.length < 2) return;
 
-      // Clean the explanation text
       const cloneAns = ansBlock.cloneNode(true);
       const summaryEl = cloneAns.querySelector("summary");
       if (summaryEl) summaryEl.remove();
-      let rawExplanation = cloneAns.innerHTML.replace(/Показать ответ\s*/gi, "").trim();
+      const rawExplanation = cloneAns.innerHTML.replace(/Показать ответ\s*/gi, "").trim();
 
-      // Determine the correct letter (A, B, C, or D)
       const cleanTextForMatch = cloneAns.textContent.replace(/Показать ответ\s*/gi, "").trim();
       const answerMatch = cleanTextForMatch.match(/^([A-DА-Г])[\.\)\:\s]/i);
       const letterMap = { "А": "A", "Б": "B", "В": "C", "Г": "D" };
       let correctAnswer = answerMatch ? answerMatch.at(1).toUpperCase() : "";
       if (letterMap[correctAnswer]) correctAnswer = letterMap[correctAnswer];
 
-      // Build the TV-show card
+      const options = listItems.map((li) => {
+        const text = li.innerHTML.trim();
+        const optMatch = li.textContent.trim().match(/^([A-DА-Г])[\)\.\:]\s*/i);
+        let choice = optMatch ? optMatch.at(1).toUpperCase() : "";
+        if (letterMap[choice]) choice = letterMap[choice];
+        const cleanText = text.replace(/^([A-DА-Г])[\)\.\:]\s*/i, "");
+        return { choice, cleanText };
+      });
+
+      questionsData.push({
+        questionHTML: questionP.innerHTML,
+        options,
+        correctAnswer,
+        explanationHTML: rawExplanation,
+        anchorNode: questionP,
+        cleanupNodes: [questionP, ul, ansBlock]
+      });
+    });
+
+    if (!questionsData.length) return;
+
+    const totalQuestions = questionsData.length;
+    const pageKey = `quiz_best_${window.location.pathname}`;
+    let currentIndex = 0;
+    let currentScore = 0;
+    let currentWinnings = "$0";
+
+    // Classic prize values up to $1 Million (adapts to any question count)
+    const classicPrizes = [
+      "$100", "$200", "$300", "$500", "$1,000",
+      "$2,000", "$4,000", "$8,000", "$16,000", "$32,000",
+      "$64,000", "$125,000", "$250,000", "$500,000", "$750,000", "$1 Million"
+    ];
+
+    const getPrizeForStep = (stepIndex) => {
+      if (stepIndex === totalQuestions - 1) return "$1 Million";
+      if (totalQuestions <= classicPrizes.length) {
+        const offset = classicPrizes.length - totalQuestions;
+        return classicPrizes.at(stepIndex + offset);
+      }
+      const scaled = Math.round(((stepIndex + 1) / totalQuestions) * 10000) * 100;
+      return "$" + scaled.toLocaleString("en-US");
+    };
+
+    // Build main TV Studio Stage wrapper
+    const firstAnchor = questionsData.at(0).anchorNode;
+    const studioWrapper = document.createElement("div");
+    studioWrapper.className = "millionaire-studio";
+
+    // Top Scoreboard
+    const savedBest = localStorage.getItem(pageKey) || "0";
+    const scoreBoard = document.createElement("div");
+    scoreBoard.className = "quiz-scoreboard";
+    scoreBoard.innerHTML = `
+      <span class="quiz-stats">
+        Вопрос: <strong class="q-step">1</strong> / ${totalQuestions} &nbsp;|&nbsp;
+        Верно: <strong class="q-curr">0</strong> &nbsp;|&nbsp;
+        Рекорд: <strong class="q-best">${savedBest}</strong>
+      </span>
+      <button type="button" class="quiz-reset-btn">Начать заново</button>
+    `;
+    firstAnchor.parentNode.insertBefore(scoreBoard, firstAnchor);
+    firstAnchor.parentNode.insertBefore(studioWrapper, firstAnchor);
+
+    // Remove original plain Markdown blocks
+    questionsData.forEach((item) => {
+      item.cleanupNodes.forEach((node) => node.remove());
+    });
+
+    // Left Stage (Logo + Active Question) & Right Ladder
+    const stageLeft = document.createElement("div");
+    stageLeft.className = "studio-stage-left";
+
+    const ladderRight = document.createElement("div");
+    ladderRight.className = "studio-ladder-right";
+
+    studioWrapper.appendChild(stageLeft);
+    studioWrapper.appendChild(ladderRight);
+
+    // Logo loader with automatic fallback if a file is missing
+    const logoWrap = document.createElement("div");
+    logoWrap.className = "quiz-logo-wrap";
+    const logoImg = document.createElement("img");
+    logoImg.className = "quiz-logo";
+    logoImg.alt = "Who Wants to Be a Millionaire";
+    logoWrap.appendChild(logoImg);
+
+    const loadWorkingLogo = () => {
+      const pool = [...quizLogos].sort(() => Math.random() - 0.5);
+      const tryNext = () => {
+        if (!pool.length) {
+          logoWrap.style.display = "none";
+          return;
+        }
+        logoWrap.style.display = "flex";
+        logoImg.src = pool.shift();
+      };
+      logoImg.onerror = tryNext;
+      tryNext();
+    };
+
+    // Build Money Ladder (top to bottom: highest prize at top)
+    const ladderRows = [];
+    for (let i = totalQuestions - 1; i >= 0; i--) {
+      const stepNum = i + 1;
+      const prizeText = getPrizeForStep(i);
+      const isMilestone = stepNum === totalQuestions || stepNum % 5 === 0;
+
+      const row = document.createElement("div");
+      row.className = "ladder-row" + (isMilestone ? " is-milestone" : "");
+      row.dataset.index = String(i);
+      row.innerHTML = `
+        <span class="ladder-num">${stepNum}</span>
+        <span class="ladder-diamond">◆</span>
+        <span class="ladder-prize">${prizeText}</span>
+      `;
+      ladderRight.appendChild(row);
+      ladderRows.push(row);
+    }
+
+    const updateLadderHighlight = () => {
+      ladderRows.forEach((row) => {
+        const idx = Number(row.dataset.index);
+        row.classList.toggle("is-active", idx === currentIndex);
+        row.classList.toggle("is-passed", idx < currentIndex);
+      });
+    };
+
+    const getGrade = (score, total) => {
+      const pct = Math.round((score / total) * 100);
+      if (pct === 100) return { pct, rank: "Миллионер! (5+)", msg: "Безупречный результат — вы забрали $1 Million!" };
+      if (pct >= 80)  return { pct, rank: "Отлично (5)", msg: "Прекрасное знание темы!" };
+      if (pct >= 60)  return { pct, rank: "Хорошо (4)", msg: "Достойный результат, но есть пара нюансов." };
+      if (pct >= 40)  return { pct, rank: "Удовлетворительно (3)", msg: "База есть, стоит повторить материал." };
+      return { pct, rank: "Нужна тренировка (2)", msg: "Изучите пояснения и попробуйте ещё раз." };
+    };
+
+    const renderFinalScreen = () => {
+      const grade = getGrade(currentScore, totalQuestions);
+      stageLeft.innerHTML = "";
+      stageLeft.appendChild(logoWrap);
+
+      const finalBox = document.createElement("div");
+      finalBox.className = "quiz-final-result";
+      finalBox.innerHTML = `
+        <div class="result-header">Игра окончена</div>
+        <div class="result-money">Выигрыш: ${currentWinnings}</div>
+        <div class="result-score">Верных ответов: ${currentScore} из ${totalQuestions} (${grade.pct}%)</div>
+        <div class="result-rank">${grade.rank}</div>
+        <div class="result-msg">${grade.msg}</div>
+        <button type="button" class="quiz-next-btn result-retry">Сыграть ещё раз</button>
+      `;
+      stageLeft.appendChild(finalBox);
+      finalBox.querySelector(".result-retry").addEventListener("click", resetQuiz);
+
+      ladderRows.forEach((row) => row.classList.remove("is-active"));
+    };
+
+    const renderQuestion = (index) => {
+      const item = questionsData.at(index);
+      if (!item) return;
+
+      const stepEl = scoreBoard.querySelector(".q-step");
+      if (stepEl) stepEl.textContent = String(index + 1);
+      updateLadderHighlight();
+
+      stageLeft.innerHTML = "";
+
+      if (index === 0) {
+        stageLeft.appendChild(logoWrap);
+      }
+
       const quizBox = document.createElement("div");
       quizBox.className = "dg-quiz";
-      quizBox.dataset.answer = correctAnswer;
-
-      if (quizLogos.length) {
-        const logoWrap = document.createElement("div");
-        logoWrap.className = "quiz-logo-wrap";
-        const img = document.createElement("img");
-        img.className = "quiz-logo";
-        img.src = getRandomLogo();
-        img.alt = "Show Logo";
-        img.loading = "lazy";
-        img.onerror = () => { logoWrap.style.display = "none"; };
-        logoWrap.appendChild(img);
-        quizBox.appendChild(logoWrap);
-      }
 
       const qDiv = document.createElement("div");
       qDiv.className = "quiz-question";
-      qDiv.innerHTML = questionP.innerHTML;
+      qDiv.innerHTML = item.questionHTML;
       quizBox.appendChild(qDiv);
 
       const optionsDiv = document.createElement("div");
       optionsDiv.className = "quiz-options";
 
-      listItems.forEach((li) => {
-        const text = li.innerHTML.trim();
-        const optMatch = li.textContent.trim().match(/^([A-DА-Г])[\)\.\:]\s*/i);
-        let choice = optMatch ? optMatch.at(1).toUpperCase() : "";
-        if (letterMap[choice]) choice = letterMap[choice];
-
-        const cleanText = text.replace(/^([A-DА-Г])[\)\.\:]\s*/i, "");
-
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "quiz-option";
-        btn.dataset.choice = choice;
-        btn.innerHTML = `<span class="quiz-letter">${choice}:</span><span>${cleanText}</span>`;
-        optionsDiv.appendChild(btn);
-      });
-
-      quizBox.appendChild(optionsDiv);
-
       const expDiv = document.createElement("div");
       expDiv.className = "quiz-explanation";
-      expDiv.innerHTML = rawExplanation;
-      expDiv.style.display = "none";
-      quizBox.appendChild(expDiv);
-
-      // Replace plain Markdown elements with the interactive quiz card
-      questionP.parentNode.insertBefore(quizBox, questionP);
-      questionP.remove();
-      ul.remove();
-      ansBlock.remove();
-
-      convertedQuizzes.push(quizBox);
-    });
-
-    if (!convertedQuizzes.length) return;
-
-    // Scoreboard and grading
-    const pageKey = `quiz_best_${window.location.pathname}`;
-    let currentScore = 0;
-    let answeredCount = 0;
-    const totalQuestions = convertedQuizzes.length;
-
-    const getGrade = (score, total) => {
-      const pct = Math.round((score / total) * 100);
-      if (pct === 100) return { pct, rank: "Миллионер! (5+)", msg: "Безупречный результат — ни единой ошибки!" };
-      if (pct >= 80)  return { pct, rank: "Отлично (5)", msg: "Прекрасное знание темы!" };
-      if (pct >= 60)  return { pct, rank: "Хорошо (4)", msg: "Достойный результат, но есть пара нюансов." };
-      if (pct >= 40)  return { pct, rank: "Удовлетворительно (3)", msg: "База есть, стоит повторить материал." };
-      return { pct, rank: "Нужна тренировка (2)", msg: "Попробуйте изучить пояснения и пройти тест ещё раз." };
-    };
-
-    const firstQuiz = convertedQuizzes.at(0);
-    const scoreBoard = document.createElement("div");
-    scoreBoard.className = "quiz-scoreboard";
-    const savedBest = localStorage.getItem(pageKey) || "0";
-    scoreBoard.innerHTML = `
-      <span class="quiz-stats">Счёт: <strong class="q-curr">0</strong> / ${totalQuestions} &nbsp;|&nbsp; Рекорд: <strong class="q-best">${savedBest}</strong></span>
-      <button type="button" class="quiz-reset-btn">Пройти заново</button>
-    `;
-    firstQuiz.parentNode.insertBefore(scoreBoard, firstQuiz);
-
-    const lastQuiz = convertedQuizzes.at(-1);
-    const resultCard = document.createElement("div");
-    resultCard.className = "quiz-final-result";
-    resultCard.style.display = "none";
-    lastQuiz.parentNode.insertBefore(resultCard, lastQuiz.nextSibling);
-
-    const showFinalGrade = () => {
-      const grade = getGrade(currentScore, totalQuestions);
-      resultCard.innerHTML = `
-        <div class="result-header">Итог викторины</div>
-        <div class="result-score">${currentScore} из ${totalQuestions} (${grade.pct}%)</div>
-        <div class="result-rank">${grade.rank}</div>
-        <div class="result-msg">${grade.msg}</div>
-        <button type="button" class="quiz-reset-btn result-retry">Пройти заново</button>
-      `;
-      resultCard.style.display = "block";
-      resultCard.querySelector(".result-retry").addEventListener("click", resetQuiz);
-    };
-
-    const updateScore = () => {
-      const currEl = scoreBoard.querySelector(".q-curr");
-      const bestEl = scoreBoard.querySelector(".q-best");
-      if (currEl) currEl.textContent = String(currentScore);
-
-      const prevBest = Number(localStorage.getItem(pageKey) || 0);
-      if (currentScore > prevBest) {
-        localStorage.setItem(pageKey, String(currentScore));
-        if (bestEl) bestEl.textContent = String(currentScore);
-      }
-
-      if (answeredCount === totalQuestions) {
-        showFinalGrade();
-      }
-    };
-
-    const resetQuiz = () => {
-      currentScore = 0;
-      answeredCount = 0;
-      const currEl = scoreBoard.querySelector(".q-curr");
-      if (currEl) currEl.textContent = "0";
-      resultCard.style.display = "none";
-
-      convertedQuizzes.forEach((quiz) => {
-        delete quiz.dataset.answered;
-
-        const logoWrap = quiz.querySelector(".quiz-logo-wrap");
-        const logoImg = quiz.querySelector(".quiz-logo");
-        if (logoImg && quizLogos.length) {
-          if (logoWrap) logoWrap.style.display = "flex";
-          logoImg.src = getRandomLogo();
-        }
-
-        const explanation = quiz.querySelector(".quiz-explanation");
-        if (explanation) explanation.style.display = "none";
-
-        quiz.querySelectorAll(".quiz-option").forEach((opt) => {
-          opt.disabled = false;
-          opt.classList.remove("is-correct", "is-wrong");
-        });
-      });
-
-      scoreBoard.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    };
-
-    scoreBoard.querySelector(".quiz-reset-btn").addEventListener("click", resetQuiz);
-
-    convertedQuizzes.forEach((quiz) => {
-      const correctAnswer = quiz.dataset.answer;
-      const explanation = quiz.querySelector(".quiz-explanation");
-      const options = quiz.querySelectorAll(".quiz-option");
-
-      options.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          if (quiz.dataset.answered === "true") return;
-          quiz.dataset.answered = "true";
-          answeredCount++;
-
-          const choice = btn.dataset.choice;
-
-          if (choice === correctAnswer) {
-            btn.classList.add("is-correct");
-            currentScore++;
-          } else {
-            btn.classList.add("is-wrong");
-            options.forEach((opt) => {
-              if (opt.dataset.choice === correctAnswer) {
-                opt.classList.add("is-correct");
-              }
-            });
-          }
-
-          options.forEach((opt) => (opt.disabled = true));
-          if (explanation) explanation.style.display = "block";
-
-          updateScore();
-        });
-      });
-    });
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initMillionaireQuiz);
-  } else {
-    initMillionaireQuiz();
-  }
+      expDiv.innerHTML = item.explanationHTML;const btn = document.createElement("button");
+btn.type = "button";
+btn.className = "quiz-option";
+btn.dataset.choice = opt.choice;
+btn.innerHTML = <span class="quiz-letter">${opt.choice}:</span><span>${opt.cleanText}</span>;
+btn.addEventListener("click", () => {
+if (answered) return;
+answered = true;
+const allBtns = optionsDiv.querySelectorAll(".quiz-option");
+if (opt.choice === item.correctAnswer) {
+btn.classList.add("is-correct");
+currentScore++;
+currentWinnings = getPrizeForStep(index);
+} else {
+btn.classList.add("is-wrong");
+allBtns.forEach((b) => {
+if (b.dataset.choice === item.correctAnswer) {
+b.classList.add("is-correct");
+}
+});
+}
+allBtns.forEach((b) => (b.disabled = true));
+expDiv.style.display = "block";
+nextBtn.style.display = "inline-flex";
+const currEl = scoreBoard.querySelector(".q-curr");
+const bestEl = scoreBoard.querySelector(".q-best");
+if (currEl) currEl.textContent = String(currentScore);
+const prevBest = Number(localStorage.getItem(pageKey) || 0);
+if (currentScore > prevBest) {
+localStorage.setItem(pageKey, String(currentScore));
+if (bestEl) bestEl.textContent = String(currentScore);
+}
+});
+optionsDiv.appendChild(btn);
+});
+quizBox.appendChild(optionsDiv);
+quizBox.appendChild(expDiv);
+const footerActions = document.createElement("div");
+footerActions.className = "quiz-footer-actions";
+footerActions.appendChild(nextBtn);
+quizBox.appendChild(footerActions);
+stageLeft.appendChild(quizBox);
+};
+const resetQuiz = () => {
+currentIndex = 0;
+currentScore = 0;
+currentWinnings = "$0";
+const currEl = scoreBoard.querySelector(".q-curr");
+if (currEl) currEl.textContent = "0";
+loadWorkingLogo();
+renderQuestion(0);
+};
+scoreBoard.querySelector(".quiz-reset-btn").addEventListener("click", resetQuiz);
+// Start on Question 1
+loadWorkingLogo();
+renderQuestion(0);
+}
+if (document.readyState === "loading") {
+document.addEventListener("DOMContentLoaded", initMillionaireQuiz);
+} else {
+initMillionaireQuiz();
+}
 })();
-</script>
+      expDiv.style.display = "none";
+
+      const nextBtn = document.createElement("button");
+      nextBtn.type = "button";
+      nextBtn.className = "quiz-next-btn";
+      nextBtn.textContent = index === totalQuestions - 1 ? "Завершить и узнать результат" : "Следующий вопрос →";
+      nextBtn.style.display = "none";
+
+      nextBtn.addEventListener("click", () => {
+        if (currentIndex < totalQuestions - 1) {
+          currentIndex++;
+          renderQuestion(currentIndex);
+        } else {
+          renderFinalScreen();
+        }
+      });
+
+      let answered = false;
+
+      item.options.forEach((opt) => {
+
