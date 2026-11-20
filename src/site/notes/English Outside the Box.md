@@ -2,7 +2,7 @@
 {"dg-publish":true,"permalink":"/English Outside the Box/","title":"English Outside the Box","tags":["gardenEntry"],"dg-note-properties":{"type":"hub","title":"English Outside the Box","cssclasses":["theme-dark"]}}
 ---
 
-# 
+# Йо!
 > Добро пожаловать на борт, искатель приключений! 🗺️
 
 Перед тобой не простой школьный учебник с правилами и скучными текстами. Это **Свиток Заклинаний и Шифров**, который откроет тебе доступ к главному секрету нашей планеты — к Истинному Английскому Языку! 🗝️
@@ -12,7 +12,9 @@
 ---
 
 ## 🗂 Уроки по модулям
-
+>[!warning] Памятка спецагенту
+>- In iOS go to **Settings > Accessibility > Spoken Content** (or **VoiceOver > Verbosity**).
+>- Look for **Capital Letters** (under Punctuation or Verbosity depending on iOS version) and set it to **Do Nothing** instead of "Speak Cap."
 
 ### 🅰️ Модуль 1 — Алфавит и звуки (уроки 1–11)
 
