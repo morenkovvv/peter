@@ -14,168 +14,169 @@
 ## 🗂 Уроки по модулям
 >[!warning] Памятка спецагенту
 >- In iOS go to **Settings > Accessibility > Spoken Content** (or **VoiceOver > Verbosity**).
->- Look for **Capital Letters** (under Punctuation or Verbosity depending on iOS version) and set it to **Do Nothing** instead of "Speak Cap."
+>- Look for **Capital Letters** (under Punctuation or Verbosity depending on iOS) and set it to **Do Nothing** instead of "Speak Cap."
 
 ### 🅰️ Модуль 1 — Алфавит и звуки (уроки 1–11)
 
 | Урок                            |
 | ------------------------------- |
-| [[1. A to Z (т.е. полностью)\|1. A to Z (т.е. полностью)]]  |
-| [[2. Цифры, время и деньги\|2. Цифры, время и деньги]]    |
-| [[3. Letters' names vs sounds\|3. Letters' names vs sounds]] |
-| [[4. Similar problems\|4. Similar problems]]         |
-| [[5. Если Шизофрения\|5. Если Шизофрения]]          |
-| [[6. Magic E (for Pete)\|6. Magic E (for Pete)]]       |
-| [[7. Диграф Толстой\|7. Диграф Толстой]]           |
-| [[8. Magic R controller\|8. Magic R controller]]       |
-| [[9. Cowardly L\|9. Cowardly L]]               |
-| [[10. CG Double Agents\|10. CG Double Agents]]        |
-| [[11. Дифтонги, эй!\|11. Дифтонги, эй!]]           |
+| [[Book1/1. A to Z\|1. A to Z]]  |
+| [[Book1/2. Numbers\|2. Numbers]]    |
+| [[Book1/3. Letters' names vs sounds\|3. Letters' names vs sounds]] |
+| [[Book1/4. Similar problems\|4. Similar problems]]         |
+| [[Book1/5. Если Шизофрения\|5. Если Шизофрения]]          |
+| [[Book1/6. Magic E (for Pete)\|6. Magic E (for Pete)]]       |
+| [[Book1/7. Диграф Толстой\|7. Диграф Толстой]]           |
+| [[Book1/8. R controller\|8. R controller]]       |
+| [[Book1/9. Cowardly L\|9. Cowardly L]]               |
+| [[Book1/10. C&G Double Agents\|10. C&G Double Agents]]        |
+| [[Book1/11. Diphthongs\|11. Diphthongs]]           |
 
 ### 🧩 Модуль 2 — Первые слова и грамматика (уроки 12–21)
 
 | Урок                                |
 | ----------------------------------- |
-| [[12. Plural foxes (-s)\|12. Plural foxes (-s)]]           |
-| [[13. Кто Я и кто Ты - мы местоимения\|13. Кто Я и кто Ты - мы местоимения]]              |
-| [[14. Слова (цензурная лексика)\|14. Слова (цензурная лексика)]]   |
-| [[15. Предлоги места\|15. Предлоги места]]              |
-| [[16. Цвета\|16. Цвета]]                       |
-| [[17. Частотные паразиты (bugs)\|17. Частотные паразиты (bugs)]]   |
-| [[18. Who, What, When, Where, Why\|18. Who, What, When, Where, Why]] |
-| [[19. Yes, we CAN\|19. Yes, we CAN]]                 |
-| [[20. Глаголы, can\|20. Глаголы, can]]                |
-| [[21. Do-ing nothing (playing)\|21. Do-ing nothing (playing)]]    |
+| [[Book1/12. Plural foxes (-s)\|12. Plural foxes (-s)]]           |
+| [[Book1/13. Pronouns\|13. Pronouns]]              |
+| [[Book1/14. Articles & Sentence Frames\|14. Articles & Sentence Frames]]   |
+| [[Book1/15. Prepositions\|15. Prepositions]]              |
+| [[Book1/16. Colors & Traits\|16. Colors & Traits]]                       |
+| [[Book1/17. Sight words\|17. Sight words]]   |
+| [[Book1/18. Who, What, When, Where, Why\|18. Who, What, When, Where, Why]] |
+| [[Book1/19. Yes, we CAN\|19. Yes, we CAN]]                 |
+| [[Book1/20. Verbs\|20. Verbs]]                |
+| [[Book1/21. Do-ing nothing\|21. Do-ing nothing]]    |
 
-### 🎮 Модуль 3 — Игры со словами (уроки 22–31)
+### 🎮 Модуль 3 — Игры со словами (уроки 22–32)
 
-| Урок                               |
-| ---------------------------------- |
-| [[22. Пан-граммы\|22. Пан-граммы]]                 |
-| [[23. Нон-сенс рифмы\|23. Нон-сенс рифмы]]             |
-| [[24. Вавилонская башня\|24. Вавилонская башня]]          |
-| [[25. Матрица - перегрузка\|25. Матрица - перегрузка]]       |
-| [[26. Метод попугая\|26. Метод попугая]]              |
-| [[27. Метод собачьей дрессировки\|27. Метод собачьей дрессировки]] |
-| [[28. Пишем языком\|28. Пишем языком]]               |
-| [[29. Earth is Flat\|29. Earth is Flat]]              |
-| [[30. Инопланетные гости\|30. Инопланетные гости]]         |
-| [[31. Basic English\|31. Basic English]]              |
+| Урок                            |
+| ------------------------------- |
+| [[Book1/22. Pangrams\|22. Pangrams]]                |
+| [[Book1/23. Nonsense\|23. Nonsense]]                |
+| [[Book1/24. Rivers of Babylon\|24. Rivers of Babylon]]       |
+| [[Book1/25. Matrix Overloaded\|25. Matrix Overloaded]]       |
+| [[Book1/26. Parrot method\|26. Parrot method]]           |
+| [[Book1/27. Dog training method\|27. Dog training method]]     |
+| [[Book1/28. All in your head\|28. All in your head]]        |
+| [[Book1/29. Earth is Flat\|29. Earth is Flat]]           |
+| [[Book1/30. Инопланетные гости\|30. Инопланетные гости]]      |
+| [[Book1/31. Basic English\|31. Basic English]]           |
+| [[Book1/32. Pete's Super Dictionary\|32. Pete's Super Dictionary]] |
 
-### ⚔️ Модуль 4 — Мастерство языка (уроки 32–44)
+### ⚔️ Модуль 4 — Мастерство языка (уроки 33–44)
 
-| Урок                                |
-| ----------------------------------- |
-| [[32. Pete's Super Dictionary\|32. Pete's Super Dictionary]]     |
-| [[33. Gaslighting\|33. Gaslighting]]                 |
-| [[34. Bullying and Harassment\|34. Bullying and Harassment]]     |
-| [[35. Идиомы и поговорки\|35. Идиомы и поговорки]]          |
-| [[36. Сестра таланта\|36. Сестра таланта]]              |
-| [[37. Глагол To Be\|37. Глагол To Be]]                |
-| [[38. Настоящее время\|38. Настоящее время]]             |
-| [[39. Прошедшее время\|39. Прошедшее время]]             |
-| [[40. Неправильные глаголы\|40. Неправильные глаголы]]        |
-| [[41. Эмоции и чувства (Emotions)\|41. Эмоции и чувства (Emotions)]] |
-| [[42. Семья (Family)\|42. Семья (Family)]]              |
-| [[43. Тело (Body)\|43. Тело (Body)]]                 |
-| [[44. Финальный квест\|44. Финальный квест]]             |
+| Урок                            |
+| ------------------------------- |
+| [[Book1/33. Gaslighting\|33. Gaslighting]]             |
+| [[Book1/34. Bullying and Harassment\|34. Bullying and Harassment]] |
+| [[Book1/35. Idioms & Proverbs\|35. Idioms & Proverbs]]      |
+| [[Book1/36. Сестра таланта\|36. Сестра таланта]]          |
+| [[Book1/37. To Be\|37. To Be]]            |
+| [[Book1/38. Present Simple\|38. Present Simple]]         |
+| [[Book1/39. Past Simple\|39. Past Simple]]         |
+| [[Book1/40. Неправильные глаголы\|40. Неправильные глаголы]]    |
+| [[Book1/41. Emotions\|41. Emotions]]                |
+| [[Book1/42. Family\|42. Family]]                  |
+| [[Book1/43. Body\|43. Body]]                    |
+| [[Book1/44. Final Quest\|44. Final Quest]]             |
+
 ## 🌟 Финальный вызов
 
-Все пути ведут к [[44. Финальный квест\|44. Финальный квест]]!
+Все пути ведут к [[Book1/44. Final Quest\|44. Final Quest]]!
 Несомненно, это будет сокрушительный триумф, как Наполеон в Акко.
 
 ### ❤️ Модуль 0 — Мотивация (уроки 45–52)
 
 | Урок                           |
 | ------------------------------ |
-| [[45. Рифмы\|45. Рифмы]]                 |
-| [[46. Why English (Love)\|46. Why English (Love)]]     |
-| [[47. Gaming\|47. Gaming]]                 |
-| [[48. Programming & AI\|48. Programming & AI]]       |
-| [[49. Hollywood & Movies\|49. Hollywood & Movies]]     |
-| [[50. Music & Lyrics\|50. Music & Lyrics]]         |
-| [[51. Internet & Social Media\|51. Internet & Social Media]]|
-| [[52. Your Future\|52. Your Future]]            |
+| [[Book1/45. Rhymes\|45. Rhymes]]                 |
+| [[Book1/46. Why English (Love)\|46. Why English (Love)]]     |
+| [[Book1/47. Gaming\|47. Gaming]]                 |
+| [[Book1/48. Programming & AI\|48. Programming & AI]]       |
+| [[Book1/49. Hollywood & Movies\|49. Hollywood & Movies]]     |
+| [[Book1/50. Music & Lyrics\|50. Music & Lyrics]]         |
+| [[Book1/51. Internet & Social Media\|51. Internet & Social Media]]|
+| [[Book1/52. Your Future\|52. Your Future]]            |
 
 ### 🔫 Модуль 5 — Грамматический тир, часть 1 (уроки 53–66)
 
 | Урок                                            |
 | ----------------------------------------------- |
-| [[53. Артикли (Articles)\|53. Артикли (Articles)]]                      |
-| [[54. This-That-These-Those\|54. This-That-These-Those]]                   |
-| [[55. Притяжательные местоимения\|55. Притяжательные местоимения]]              |
-| [[56. There is-There are\|56. There is-There are]]                      |
-| [[57. Предлоги времени\|57. Предлоги времени]]                        |
-| [[58. Слова-песочницы\|58. Слова-песочницы]]                         |
-| [[59. Present Continuous\|59. Present Continuous]]                      |
-| [[60. Hakuna Matata\|60. Hakuna Matata]]                           |
-| [[60b. Авось аравит\|60b. Авось аравит]]                           |
-| [[61. Дух приключений (Adventure & Invention)\|61. Дух приключений (Adventure & Invention)]] |
-| [[62. Future Simple (will)\|62. Future Simple (will)]]                    |
-| [[63. Модальный глагол Can\|63. Модальный глагол Can]]                    |
-| [[64. Прилагательные (big-small)\|64. Прилагательные (big-small)]]              |
-| [[65. Междометия\|65. Междометия]]                              |
-| [[66. Наречия (often-never)\|66. Наречия (often-never)]]                   |
+| [[Book1/53. Articles\|53. Articles]]                      |
+| [[Book1/54. This-That-These-Those\|54. This-That-These-Those]]                   |
+| [[Book1/55. Possessives\|55. Possessives]]              |
+| [[Book1/56. There is-There are\|56. There is-There are]]                      |
+| [[Book1/57. Prepositions of Time\|57. Prepositions of Time]]                        |
+| [[Book1/58. Sandbox Words\|58. Sandbox Words]]                         |
+| [[Book1/59. Present Continuous\|59. Present Continuous]]                      |
+| [[Book1/60. Hakuna Matata\|60. Hakuna Matata]]                           |
+| [[Book1/60b. Авось аравит\|60b. Авось аравит]]                           |
+| [[Book1/61. Adventure & Discovery\|61. Adventure & Discovery]] |
+| [[Book1/62. Future Simple (will)\|62. Future Simple (will)]]                    |
+| [[Book1/63. Can I\|63. Can I]]                    |
+| [[Book1/64. Adjectives\|64. Adjectives]]              |
+| [[Book1/65. Interjections\|65. Interjections]]                              |
+| [[Book1/66. Often-never Adverbs\|66. Often-never Adverbs]]                   |
 
 ### 📈 Модуль 6 — Грамматический тир, часть 2 (уроки 67–78)
 
 | Урок                                        |
 | ------------------------------------------- |
-| [[67. Предлоги места (in-on-under)\|67. Предлоги места (in-on-under)]]        |
-| [[68. Вопросы\|68. Вопросы]]                             |
-| [[69. Past Continuous (was-were + ing)\|69. Past Continuous (was-were + ing)]]    |
-| [[70. Present Perfect (have done)\|70. Present Perfect (have done)]]         |
-| [[71. Модальные глаголы (must-should-can)\|71. Модальные глаголы (must-should-can)]] |
-| [[72. Порядок прилагательных\|72. Порядок прилагательных]]              |
-| [[73. Условные предложения (If)\|73. Условные предложения (If)]]           |
-| [[74. Страдательный залог (is done)\|74. Страдательный залог (is done)]]       |
-| [[75. Present Perfect vs Past Simple\|75. Present Perfect vs Past Simple]]      |
-| [[76. Фразовые глаголы (get up, give up)\|76. Фразовые глаголы (get up, give up)]]  |
-| [[77. Глаголы действия и состояния\|77. Глаголы действия и состояния]]        |
-| [[78. Герундий (enjoy + -ing)\|78. Герундий (enjoy + -ing)]]             |
+| [[Book1/67. In-on-under prepositions\|67. In-on-under prepositions]]        |
+| [[Book1/68. Tag Questions\|68. Tag Questions]]                             |
+| [[Book1/69. Imperatives\|69. Imperatives]]    |
+| [[Book1/70. Possessive 's\|70. Possessive 's]]         |
+| [[Book1/71. Must-should-can\|71. Must-should-can]] |
+| [[Book1/72. School & Backpack Loot\|72. School & Backpack Loot]]              |
+| [[Book1/73. Love-Hate Relationships\|73. Love-Hate Relationships]]           |
+| [[Book1/74. Simple vs Continuous\|74. Simple vs Continuous]]       |
+| [[Book1/75. Let's... & Can you...\|75. Let's... & Can you...]]      |
+| [[Book1/76. Some & Any\|76. Some & Any]]  |
+| [[Book1/77. Movement PRP\|77. Movement PRP]]        |
+| [[Book1/78. Gerund (-ing)\|78. Gerund (-ing)]]             |
 
 ### 🌍 Модуль 7 — Мир и жизнь (уроки 79–92)
 
 | Урок                                               |
 | -------------------------------------------------- |
-| [[79. Природа и животные\|79. Природа и животные]]                         |
-| [[80. Еда и напитки\|80. Еда и напитки]]                              |
-| [[81. Город и транспорт\|81. Город и транспорт]]                          |
-| [[82. Погода и времена года\|82. Погода и времена года]]                      |
-| [[83. Одежда и внешность\|83. Одежда и внешность]]                         |
-| [[84. Дом и мебель\|84. Дом и мебель]]                               |
-| [[85. НЛП Нейро-лингвистическое программирование\|85. НЛП Нейро-лингвистическое программирование]] |
-| [[86. Профессии и работа\|86. Профессии и работа]]                         |
-| [[87. Время и распорядок дня\|87. Время и распорядок дня]]                     |
-| [[88. Хобби и интересы\|88. Хобби и интересы]]                           |
-| [[89. Деньги и покупки\|89. Деньги и покупки]]                           |
-| [[90. Путешествия и страны\|90. Путешествия и страны]]                       |
-| [[91. Мы одни во вселенной\|91. Мы одни во вселенной]]                       |
-| [[92. Down - история с лишней хромосомой\|92. Down - история с лишней хромосомой]]          |
+| [[Book1/79. Nature & Animals\|79. Nature & Animals]]                         |
+| [[Book1/80. Food & Drinks\|80. Food & Drinks]]                              |
+| [[Book1/81. City, Transport, Directions\|81. City, Transport, Directions]]                          |
+| [[Book1/82. Weather & Seasons\|82. Weather & Seasons]]                      |
+| [[Book1/83. Clothes & Appearance\|83. Clothes & Appearance]]                         |
+| [[Book1/84. House & Furniture\|84. House & Furniture]]                               |
+| [[Book1/85. Memory Hacks & Spaced Repetition\|85. Memory Hacks & Spaced Repetition]] |
+| [[Book1/86. Jobs & Professions\|86. Jobs & Professions]]                         |
+| [[Book1/87. Time & Daily Routine\|87. Time & Daily Routine]]                     |
+| [[Book1/88. Hobbies & Interests\|88. Hobbies & Interests]]                           |
+| [[Book1/89. Money & Shopping\|89. Money & Shopping]]                           |
+| [[Book1/90. Travel & Countries\|90. Travel & Countries]]                       |
+| [[Book1/91. Solipsism\|91. Solipsism]]                       |
+| [[Book1/92. Down - история с лишней хромосомой\|92. Down - история с лишней хромосомой]]          |
 
 ### 🎯 Модуль 8 — Владение грамматикой (уроки 93–98)
 
 | Урок                                                     |
 | -------------------------------------------------------- |
-| [[93. Past Simple - отрицания и вопросы\|93. Past Simple - отрицания и вопросы]]                |
-| [[94. Future Simple - will\|94. Future Simple - will]]                             |
-| [[95. Present Continuous - сейчас\|95. Present Continuous - сейчас]]                      |
-| [[96. Present Continuous - отрицания и вопросы\|96. Present Continuous - отрицания и вопросы]]         |
-| [[97. Сравнения - сравнительная и превосходная степень\|97. Сравнения - сравнительная и превосходная степень]] |
-| [[98. Человек мера всех вещей\|98. Человек мера всех вещей]]                          |
+| [[Book1/93. Past Simple Negatives & Questions\|93. Past Simple Negatives & Questions]]                |
+| [[Book1/94. Future Simple - will\|94. Future Simple - will]]                             |
+| [[Book1/95. Present Continuous - сейчас\|95. Present Continuous - сейчас]]                      |
+| [[Book1/96. Present Continuous - отрицания и вопросы\|96. Present Continuous - отрицания и вопросы]]         |
+| [[Book1/97. Comparatives & Superlatives\|97. Comparatives & Superlatives]] |
+| [[Book1/98. Man is the Measure\|98. Man is the Measure]]                          |
 
 ### 🏆 Финальный урок (урок 99)
 
 | Урок                                  |
 | ------------------------------------- |
-| [[99. Гранд-финал (Grand Finale)\|99. Гранд-финал (Grand Finale)]]    |
+| [[Book1/99. Grand Finale\|99. Grand Finale]]    |
 
 ---
 ### 🌌 Эпилог (урок 100)
 
 | Урок                                              |
 | ------------------------------------------------- |
-| [[100. Бесконечная история (Neverending Story)\|100. Бесконечная история (Neverending Story)]]  |
+| [[Book1/100. Neverending Story\|100. Neverending Story]]  |
 
 ## ✅ Трекер прогресса
 
@@ -194,6 +195,6 @@
 
 ## 🌟 Финальный вызов
 
-Все пути ведут к **[[99. Гранд-финал (Grand Finale)\|99. Гранд-финал (Grand Finale)]]** — пройди все 100 уроков, чтобы получить титул **Кибер-Мага**! Приз в студию! 🏆⚡
+Все пути ведут к **[[Book1/99. Grand Finale\|99. Grand Finale]]** — пройди все 100 уроков, чтобы получить титул **Кибер-Мага**! Приз в студию! 🏆⚡
 
 ![box.gif](/img/user/box.gif)
